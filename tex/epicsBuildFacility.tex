@@ -2221,6 +2221,36 @@ On WIN32 only a product version number can be specified as follows:
 
 This results in ``/version:\$(PROD\_VERSION)" link option.
 
+\subsubsection{Generate version header}
+
+A header can be generated which defines a single string macro with a version identifier
+taken from a version control system.
+Typically this would be used to include the a automatically updated source version number
+which is accessible at runtime (eg. a stringinRecord).
+
+To enable this the \index{VERHEADER}\verb|VERHEADER| must be set to the desired name of the generated header.
+By default this variable is empty and no header will be generated.
+If specified, this variable must be set before \verb|configure/RULES| is included.
+
+The variables \index{}\verb|MODMACRO| and \index{}\verb|MODVERSION| define the name of the C macro which will be defined in the generated header, and its default value if not version control system is being used.
+
+It is also necessary to add an explicit dependency for all source files which include the generated header.
+
+An example Makefile which generated a version header is as follows.
+
+\begin{verbatim}
+TOP=../..
+include $(TOP)/configure/CONFIG
+# ... define PROD or LIBRARY names sometarget
+sometarget_SRCS = devVersionString.c
+VERHEADER = myversion.h
+MODMACRO = MYVER
+MODVERSION = defaultversionstring
+include $(TOP)/configure/RULES
+# for each source file
+devVersionString$(DEP): $(VERHEADER)
+\end{verbatim}
+
 \subsubsection{Product static builds}
 
 \index{static builds}
@@ -2931,7 +2961,10 @@ that \verb|<osclass>|, the value ``\verb|-nil-|" should be specified in the rele
 \verb|LIB_INSTALLS_<osclass>| & os class specific files from specified directories to be installed into \$(INSTALL\_LIB)\\
 \verb|LIB_INSTALLS_DEFAULT| & files from specified directories to be installed into \$(INSTALL\_LIB) for target archs with no \verb|LIB_INSTALLS_<osclass>| specified\\
 \verb|TARGETS| & files to create but not install\\
-\verb|INSTALL_LOCATION| & installation directory (defaults to \$(TOP))
+\verb|INSTALL_LOCATION| & installation directory (defaults to \$(TOP))\\
+\verb|VERHEADER| & If set, the name of a generated header file with the module version string. (default to unset)\\
+\verb|MODMACRO| & The CPP macro name written into the generated version header.\\
+\verb|MODVERSION| & The default version string written into the generated header if no VCS system is in use.\\
 \end{longtable}
 
 \end{center}
