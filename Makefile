@@ -6,6 +6,7 @@ TEXD=tex
 PDFD=pdf
 EPSD=eps
 CADIAD=ca_protocol/dia
+CADOTD=ca_protocol/dot
 
 PDFS = \
 $(PDFD)/overview_1.pdf \
@@ -50,11 +51,14 @@ $(TEXD)/registry.tex \
 $(TEXD)/databaseStructures.tex
 
 DIAS = \
-$(CADIAD)/virtual-circuit.dia \
 $(CADIAD)/connection-states.dia \
 $(CADIAD)/repeater.dia \
 
+DOTS = \
+$(CADOTD)/camessage.dot
+
 GENPNG = $(DIAS:$(CADIAD)/%.dia=ca_protocol/%.png)
+GENPNG += $(DOTS:$(CADOTD)/%.dot=ca_protocol/%.png)
 
 # Options for latex2html:
 L2H_OPTS += -split +1
@@ -85,6 +89,9 @@ $(PDFD)/%.pdf: $(EPSD)/%.eps
 
 ca_protocol/%.png: $(CADIAD)/%.dia
 	dia -t png -e $@ $<
+
+ca_protocol/%.png: $(CADOTD)/%.dot
+	dot -T png -o $@ $<
 
 ca_protocol/index.html: ca_protocol/ca_protocol.txt $(GENPNG)
 	asciidoc -n -b html5 -o $@ $<

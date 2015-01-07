@@ -1,0 +1,86 @@
+digraph caproto {
+  //rankdir=LR
+
+  subgraph cluster_legend {
+    label="Legend"
+    srv_legend [label="Message from server", shape=box]
+    cli_legend [label="Message from client"]
+    stt_legend [label="State", shape=doubleoctagon]
+  }
+
+  // circuit messages
+  srv_version [label="CA_PROTO_VERSION", shape=box]
+  cli_version [label="CA_PROTO_VERSION"]
+  cli_user [label="CA_PROTO_CLIENT_NAME"]
+  cli_host [label="CA_PROTO_HOST_NAME"]
+
+  cli_events_off [label="CA_PROTO_EVENTS_OFF"]
+  cli_events_on [label="CA_PROTO_EVENTS_ON"]
+
+  cli_search [label="CA_PROTO_SEARCH"]
+  srv_search [label="CA_PROTO_SEARCH", shape=box]
+  srv_not_found [label="CA_PROTO_NOT_FOUND",shape=box]
+
+  srv_echo_resp [label="CA_PROTO_ECHO", shape=box]
+  cli_echo_req [label="CA_PROTO_ECHO"]
+
+  // channel messages
+  cli_create [label="CA_PROTO_CREATE_CHAN"]
+  srv_rights [label="CA_PROTO_ACCESS_RIGHTS", shape=box]
+  srv_create [label="CA_PROTO_CREATE_CHAN", shape=box]
+  srv_no_chan [label="CA_PROTO_CREATE_CH_FAIL", shape=box]
+  cli_clear [label="CA_PROTO_CLEAR_CHANNEL"]
+  srv_disconn [label="CA_PROTO_SERVER_DISCONN", shape=box]
+
+  // channel subscription messages
+  cli_add [label="CA_PROTO_EVENT_ADD"]
+  srv_monitor [label="CA_PROTO_EVENT_ADD", shape=box]
+  srv_monitor_last [label="CA_PROTO_EVENT_ADD w/o data", shape=box]
+  cli_cancel [label="CA_PROTO_EVENT_CANCEL"]
+
+  // channel get messages
+  cli_read_notify [label="CA_PROTO_READ_NOTIFY"]
+  srv_read_notify [label="CA_PROTO_READ_NOTIFY", shape=box]
+
+  // channel put messages
+  cli_write [label="CA_PROTO_WRITE"]
+  cli_write_notify [label="CA_PROTO_WRITE_NOTIFY"]
+  srv_write_notify [label="CA_PROTO_WRITE_NOTIFY", shape=box]
+
+  // states
+  sock_open [label="Open Socket", shape=doubleoctagon]
+  //sock_close
+  circuit_ready [label="Circuit Ready", shape=doubleoctagon]
+  channel_ready [label="Channel Ready", shape=doubleoctagon]
+  channel_close [label="Channel Close", shape=doubleoctagon]
+  subscript_ready [label="Subscription Ready", shape=doubleoctagon]
+  subscript_close [label="Subscription Close", shape=doubleoctagon]
+
+  // circuit setup
+  sock_open -> cli_echo_req -> srv_echo_resp
+  sock_open -> srv_version -> circuit_ready
+  sock_open -> cli_version -> cli_user -> cli_host -> circuit_ready
+
+  // effects all subscriptions on this circuit
+  circuit_ready -> cli_events_off
+  circuit_ready -> cli_events_on
+
+  // name lookup
+  circuit_ready -> cli_search -> srv_search
+  cli_search -> srv_not_found
+
+  // channel create
+  circuit_ready -> cli_create -> srv_rights -> srv_create -> channel_ready
+  cli_create -> srv_no_chan
+
+  channel_ready -> cli_clear -> channel_close
+  channel_ready -> srv_disconn -> channel_close
+  
+  channel_ready -> cli_write
+  channel_ready -> cli_write_notify -> srv_write_notify
+  channel_ready -> cli_read_notify -> srv_read_notify
+
+  channel_ready -> cli_add -> subscript_ready
+  subscript_ready -> srv_monitor
+  subscript_ready -> cli_cancel -> srv_monitor_last -> subscript_close
+}
