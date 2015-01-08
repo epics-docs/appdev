@@ -33,14 +33,14 @@ http://www.gnu.org/licenses/old-licenses/fdl-1.2.html[GNU Free Documentation Lic
 
 == Introduction
 
-This document is a document the EPICS Channel Access (CA) protocol as it is, and has been, implemented,
-and to act as a specification to allow the creation of new client and server implements.
-The documentation is focused on versions >= 4.11 of the CA protocol, which used by EPICS Base 3.14.0 and later.
+This document describes the EPICS Channel Access (CA) protocol as it is, and has been, implemented.
+It is also intended to act as a specification to allow the creation of new client and server implements.
+The focus is on versions >= 4.11 of the CA protocol, which used by EPICS Base 3.14.0 and later.
 No changes from protocol versions before 4.8 (EPICS Base 3.13.0) will be included in this document.
 
-For the benefit of those writing new clients and servers this document uses
+For the benefit of those writing new clients and servers
 link:http://www.ietf.org/rfc/rfc2119.txt[RFC 2119:Key words for use in RFCs to Indicate Requirement Levels]
-as a guide to creating a compatible implementation.
+are used.
 
 == Concepts
 
@@ -66,7 +66,7 @@ of the PV name to avoid the overhead of string operations.
 Both client and server MUST maintain a list of the identifiers of all open Channels associated with a Circuit.
 
 The scope of these identifiers is a single Circuit.
-Identifiers from one Circuit are not valid on any other.
+Identifiers from one Circuit MUST NOT be used on any other.
 Further more, the same identifier number may be used one two different Circuit in
 connection with two different PV names.
 
@@ -75,61 +75,52 @@ A Channel's identifiers are explained in section
 
 === Monitors
 
-A monitor is created on a channel as a means of registering for asynchronous
-change notifications. CA protocol defines the subscription mechanism through
-which clients register for notifications. These changes will then be provided
-through monitor object or callback, depending on implementation and
-environment. Monitors may be filtered to receive only a subset of events,
+A monitor is created on a channel as a means of registering/subscribing for asynchronous
+change notifications (publications).
+Monitors may be filtered to receive only a subset of events (Event Mask),
 such as value or alarm changes. Several different monitors may be created for
 each channel.
+
+Clients SHOULD NOT create two monitors on the same channel with the same Event Mask.
 
 === Server Beacons
 
 Server beacons (<<ca-proto-rsrv-is-up,CA_PROTO_RSRV_IS_UP>>)
 are periodic protocol messages that allow servers to announce their availability.
-These messages are sent out periodically to announce their presence.
 CA clients MAY use a server's first beacon as a trigger to re-send previously unanswered
 <<ca-proto-search,CA_PROTO_SEARCH>> messages.
 
 While it was done historically, clients SHOULD NOT use Beacons to make timeout decisions for TCP Circuits.
 The <<ca-proto-echo,CA_PROTO_ECHO>> message should be used instead.
 
-As a server send beacons it MUST increment the BeaconID field each time.
+As a server sends beacons it MUST increment the BeaconID field for each message sent.
 
 Clients wishing to detect new servers should maintain a list of all servers
 along with the last BeaconID received, and the reception time.
-Servers MUST be removed from this list when no Beacon is received
+Servers SHOULD be removed from this list when no Beacon is received
 for some time (two beacon periods is RECOMMENDED).
 
 === Repeater
 
-Repeater is a standalone process that allows several clients on one machine to
-share a predefined UDP port for receiving beacon broadcasts.
+Repeater is a standalone process distributes <<ca-proto-rsrv-is-up,CA_PROTO_RSRV_IS_UP>>
+messages one a computer with several CA clients.
 
-Broadcast
-messages are sent without prior knowledge of which port the CA clients and
-hosts are listening at, so predefined port numbers are used. Since most
-network stack implementations do not allow multiple clients to listen on the
-same port, repeater is installed to listen on a single port, used for
-broadcast notifications. Repeater will fan-out unmodified incoming datagram
-messages to all the clients on the same host, that have previously registered
-with the repeater.
+A client library SHOULD attempt to register with the repeater during
+startup. If repeater cannot be found or is not available, the library SHOULD
+attempt to spawn a new repeater process.  If this fails then the registration process SHOULD be repeated.
 
-Typically, a client library will attempt to register with the repeater during
-startup. If repeater cannot be found or is not available, the library will
-attempt to spawn a new repeater process. Repeater and client communicate using
-a minimal set of messages over UDP.
+It is advisable to do this on a background thread.
 
 === Timeout Behavior
 
 CA clients typically SHOULD NOT automatically reconnect Circuits which have become unresponsive,
 instead CA clients SHOULD send a new <<ca-proto-search,CA_PROTO_SEARCH>> request.
 
-CA clients SHOULD re-send PV name searches which are not answered.
+CA clients SHOULD on occasion re-send PV name searches which are not answered.
 
 Care must be taken to avoid excessive network load due to repeated lookups and connections.
-Clients are RECOMMENDED to implement an exponentially increasing (up to a maximum) when re-sending
-CA_PROTO_SEARCH messages.
+Clients are RECOMMENDED to implement an exponentially increasing (up to a maximum) interval when re-sending
+CA_PROTO_SEARCH messages for each PV.
 
 Clients are RECOMMENDED to implement a timeout before re-starting a search
 when a Channel is closed due to an Exception, or Channel creation fails with
@@ -178,7 +169,7 @@ A partial history of CA minor version changes:
 === Exceptions
 
 Channel Access protocol error messages (<<ca-proto-error,CA_PROTO_ERROR>>) are referred to as Exceptions.
-Exceptions are sent by a CA server to indicate its failure to process a message sent by the client.
+Exceptions are sent by a CA server to indicate its failure to process a client message.
 
 An Exception MAY be sent in response to any client message, including those
 which normally would not result in a reply.
@@ -192,24 +183,23 @@ It is therefore always possible to associate an Exception with the request which
 
 A CA server will maintain at least two sockets.
 
-A UDP socket bound to the standard CA port (def. 5064) will listen for PV name search request broadcasts.
+A UDP socket bound to the CA port (def. 5064) MUST listen for PV name search request broadcasts.
 PV name search replies are sent as unicast messages to the source of the broadcast.
-This socket, or another UDP socket, will periodically send Beacons to the CA Beacon port (def. 5065).
+This socket, or another UDP socket, SHOULD periodically send Beacons to the CA Beacon port (def. 5065).
 
 A TCP socket listening on an arbitrary port.  The exact port number is included in PV name search replies.
 This socket will be used to build Virtual Circuits.
 
 A CA server SHOULD NOT answer PV name search requests for itself unless a
-<<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>> from the same client can be expected
-to succeed.
-To do otherwise risks excessive load with the creation of a tight retry loop.
+<<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>> for that PV from the same client can be expected to succeed.
+To do otherwise risks excessive load in a tight retry loop.
 
 === Overall Client Operation
 
-A CA client will maintain a registration with a Repeater on the local system, (re)starting it as necessary.
+A CA client SHOULD maintain a registration with a Repeater on the local system, (re)starting it as necessary.
 
 Clients will send PV name search broadcasts and listen for replies.
-Typically a client will maintain a table of unanswered name searches and recent results
+Typically a client will maintain a table of unanswered name searches and a cache of recent results
 in order avoid duplicate searches, and to process any replies.
 
 Once an affirmative search reply is received, a Virtual Circuit to the replier is open if needed.
@@ -219,9 +209,9 @@ are performed on this Channel.
 === Name Searching
 
 The process of finding the server which would provide a PV to a particular client can be carried out
-over UDP, or with minor version >=12 TCP.
+over UDP, or with minor version >=12 over a TCP connection.
 
-In either case each client must be pre-configured with a set of destinations to send queries.
+In either case each client SHOULD be pre-configured with a set of destinations to send queries.
 For UDP searching, this is a list of unicast or broadcast endpoints (IP and port).
 For TCP searching, this is a list of endpoints.
 
@@ -231,7 +221,7 @@ addresses of all network interfaces except the loopback.
 It is RECOMMENDED that, on client startup, Circuits be established to all endpoints in the TCP search list.
 
 Search results are transitory.  Subsequent searches MAY yield different results.
-Therefore queries SHOULD be re-tried unless a Channel already exists.
+Therefore queries SHOULD be re-tried unless an active Channel is already open.
 
 ==== UDP search datagrams
 
@@ -243,7 +233,7 @@ begin with a <<ca-proto-version,CA_PROTO_VERSION>> message.
 For efficiency it is RECOMMENDED to include as many search requests as possible in each datagram,
 subject to datagram size limits.
 
-A CA server MUST never send a <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> in response
+A CA server MUST NOT send a <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> in response
 to a UDP search request.
 
 ==== TCP search
@@ -253,13 +243,13 @@ to a UDP search request.
 
 When supported, <<ca-proto-search,CA_PROTO_SEARCH>> messages may be sent at any time the circuit is open.
 
-A CA server SHOULD send a <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> in response
-to a UDP search request if the DO_REPLY bit is set..
+A CA server MAY send a <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> in response
+to a UDP search request if the DO_REPLY bit is set.
 
 Clients MAY ignore <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> messages.
 
 A <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> message is not final.
-A subsequent search MAY yield a different result.
+A subsequent search might yield a different result.
 
 
 === Virtual Circuits
@@ -272,7 +262,8 @@ on the Circuit, this counter is reset to its initial value.
 If the timer reaches zero, the Circuit is closed.
 
 Clients MUST send a <<ca-proto-echo,CA_PROTO_ECHO>> message
-when the countdown reaches half its initial value.
+before the countdown reaches zero.
+It is RECOMMENDED to send an echo message when the countdown reaches half its initial value.
 
 When a <<ca-proto-echo,CA_PROTO_ECHO>> message is received by the server, it MUST be
 immediately copied back to the client.
@@ -296,6 +287,9 @@ Once this is done, the Circuit is ready to create channels.
 Note that the host and client name messages SHOULD NOT be (re)sent after the first channel is created.
 If the client or host name strings change, the circuit SHOULD be closed.
 
+In no host or client name messages are received a server MUST consider the client to be anonymous.
+It is RECOMMENDED that anonymous users not be granted rights for the Put operation.
+
 [[channel-creation]]
 ==== Channel Creation
 
@@ -303,7 +297,8 @@ Channel creation starts with a <<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>> req
 This message includes the PV name string, and a client selected <<cid-client-id,CID>>.
 
 If the server can not provide the named PV it replies with <<ca-proto-create-ch-fail,CA_PROTO_CREATE_CH_FAIL>>
-using the same CID.  The server does not remember the CID and it may be re-used immediately.
+using the same CID.
+The server MUST NOT remember the CID of failed creation requests as clients MAY re-used them immediately.
 
 If the server can provide the named PV, it replies with <<ca-proto-access-rights,CA_PROTO_ACCESS_RIGHTS>>
 followed by a <<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>> reply.
@@ -320,8 +315,8 @@ Together with the CID, these two identifier will be used to refer to the
 Channel in subsequent operations.
 
 The Channel remains active, and the identifiers valid, until a <<ca-proto-clear-channel,CA_PROTO_CLEAR_CHANNEL>> request
-is sent and its reply received, or until a <<ca-proto-server-disconn,CA_PROTO_SERVER_DISCONN>> message
-is received.
+is sent by a client and its reply received, until a <<ca-proto-server-disconn,CA_PROTO_SERVER_DISCONN>> message
+is received by a client, or if the circuit (TCP connection) is closed.
 
 After a server sends a CA_PROTO_CLEAR_CHANNEL reply or a CA_PROTO_SERVER_DISCONN message
 it MAY reuse the SID immediately.
@@ -329,14 +324,17 @@ it MAY reuse the SID immediately.
 After a client receives a CA_PROTO_CLEAR_CHANNEL reply or a CA_PROTO_SERVER_DISCONN message
 it MAY reuse the CID immediately.
 
+Therefore after a client sends a CA_PROTO_CLEAR_CHANNEL request, or a sever sends a CA_PROTO_SERVER_DISCONN request,
+no further messages (including <<ca-proto-error,CA_PROTO_ERROR>>) should be sent for the closed channel.
+
 ==== Put Operations
 
 A Operation to write data to a Channel begins with a <<ca-proto-write,CA_PROTO_WRITE>>
 or <<ca-proto-write-notify,CA_PROTO_WRITE_NOTIFY>> request.
-The difference between the two is that CA_PROTO_WRITE_NOTIFY always gives a reply,
+The difference between the two is that CA_PROTO_WRITE_NOTIFY gives a reply on success,
 while CA_PROTO_WRITE does not.
 
-The CA_PROTO_WRITE should be used when it is not important that all Put operations
+The CA_PROTO_WRITE SHOULD be used when it is not important that all Put operations
 are executed.
 A server SHOULD make best effort to ensure that,
 when a burst of CA_PROTO_WRITE requests is received,
@@ -364,17 +362,21 @@ A server SHOULD make best effort to fully process all CA_PROTO_READ_NOTIFY reque
 CA_PROTO_READ_NOTIFY messages include a <<sid-server-id,SID>> to determine which Channel is being operated on,
 as well as a client selected <<io-id,IOID>> which will be included in the reply.
 
+The IOID MUST be unique on the channel.
+
 ==== Monitor Operation
 
 A Monitor operation is a persistent subscription which is initiated by a
 <<ca-proto-event-add,CA_PROTO_EVENT_ADD>> request and terminated with a
 <<ca-proto-event-cancel,CA_PROTO_EVENT_CANCEL>> request.
 
-Both CA_PROTO_EVENT_ADD and CA_PROTO_EVENT_CANCEL messages include a <<sid-server-id,SID>>
+Both CA_PROTO_EVENT_ADD and CA_PROTO_EVENT_CANCEL messages include a channel <<sid-server-id,SID>>
 as well as a client selected <<subscription-id,SubscriptionID>>.
 
+The SubscriptionID MUST be unique on the channel.
+
 When a subscription is created a server SHOULD immediately send a CA_PROTO_EVENT_ADD reply
-with the present value of the Channel.
+with the present value of the Channel if such a value is available.
 
 After a CA_PROTO_EVENT_CANCEL request is received, a server MUST send one final CA_PROTO_EVENT_ADD reply
 with a zero payload size.
@@ -384,7 +386,7 @@ with a zero payload size.
 [[dynamic-array-size]]
 === Data Count in Gets and Monitors
 
-Prior to minor version 13, the element count in a CA_PROTO_EVENT_ADD or CA_PROTO_READ_NOTIFY reply MUST be the same
+Prior to `CA_V413`, the element count in a CA_PROTO_EVENT_ADD or CA_PROTO_READ_NOTIFY reply MUST be the same
 as given in the corresponding CA_PROTO_EVENT_ADD or CA_PROTO_READ_NOTIFY request.
 A request for zero elements MUST result in an ECA_BADCOUNT exception.
 If a server can not provide all of the elements requested, then it fills out the message
@@ -393,15 +395,14 @@ body with null bytes.
 Beginning in minor version 13, a request for zero elements is valid.
 The element count in a reply is then the number of elements the server could provide (perhaps zero).
 
-The element count in a reply MUST NOT exceed the element count in the
-corresponding request.
+The element count in a reply MUST NOT exceed the maximum element count on the channel.
 
 This dynamic array size feature creates a potential ambiguity in the protocol if the
 number of bytes in a CA_PROTO_EVENT_ADD reply is zero.
 
 Therefore it is RECOMMENDED that clients not create dynamic monitors for the plain DBR_* types.
 Clients needing to create such monitors are RECOMMENDED to promote the type
-to the corresponding DBR_STS_* (which can be ignored for internal processing).
+to the corresponding DBR_STS_* (the extra meta-data can be ignored for internal processing).
 Then a zero element count has a non-zero body size.
 
 Note to implementers.
@@ -411,7 +412,7 @@ before a CA_PROTO_EVENT_CANCEL request is received.
 
 == Data Types
 
-This section defines all primitive data types employed by the CA, as well as
+This section defines all primitive data types employed by CA, as well as
 their C/C++ equivalents. These data types are referred to in the subsequent
 sections.
 
@@ -440,17 +441,13 @@ represented as `00 00 0C 49`.
 
 === Message Structure
 
-All channel access messages are composed of a *header*, followed by the
+All Channel Access messages are composed of a *header*, followed by the
 *payload*.
 
-Header is always present. Its structure is fixed, and contains predefined fields.
+Header is always present.
 The command ID and payload size fields have a fixed meaning.
 Other header fields carry command-specific meaning.
-If a field is not used within a certain message, its value must be zero.
-
-Payload is a sequence of bytes, which are command and version dependent.
-Implementation is required to provide proper payload with respect to
-individual command specification.
+If a field is not used within a certain message, its value MUST be zeroed.
 
 Total size of an individual message is limited. With CA versions older than
 `CA_V49`, the maximum message size is limited to 16384 (`0x4000`) bytes.
@@ -465,7 +462,7 @@ values immediately following the header. Maximum message size is limited by
 32-bit unsigned integer representation, 4294967295 (`0xffffffff`).
 Maximum payload size is limited to 4294967255 (`0xffffffe7`).
 
-Extended message form should only be used if payload size actualy exceeds the
+For compatibility, extended message form should only be used if payload size exceeds the
 pre-`CA_V49` message size limit of 16368 bytes.
 
 
@@ -493,7 +490,7 @@ will use individual fields for purposes other than those described here. These
 variations are documented for each message individually. All of values in
 header are unsigned integers.
 
-The common header present in all messages is structured as follows:
+The basic header is structured as follows:
 
 [options="header"]
 |====================
@@ -527,21 +524,19 @@ The extended message header (`CA_V49` and newer) has the following structure:
 The structure of the payload depends on the type of the message. The size of
 the payload matches the `Payload Size` header field.
 
-[NOTE]
-If the payload size is not a multiple of 8, zero-padding must be performed to
-achieve 8-byte alignment.
+Message payloads MUST be padded to a length which is a multiple of 8 bytes.
+Zero padding is RECOMMENDED.
 
 
 === Message Identifiers
 
-Some fields in messages serve as identifiers, which must be properly handled
-by the implementation. These fields serve as identification tokens in
-asynchronous communication and must be unique within the context of the client
-library. The RECOMMENDED scheme for allocating these values is to create them
+Some fields in messages serve as identifiers.
+These fields serve as identification tokens in within the context of the a circuit (TCP connection).
+The RECOMMENDED scheme for allocating these values is to create them
 sequentially starting at 0. All IDs are represented with `UINT32`.
 
 Overflow of all identifiers MUST be handled!
-A long running applications might use more than 2**32 of some identifier
+A long running applications might use more than 2**32 of some identifier type
 type (typically IOID).
 
 [[cid-client-id]]
@@ -601,8 +596,9 @@ A SubscriptionID is found in the Parameter 2 field of
 
 An IOID is the client selected identifier for a Get or Put operation.
 An IOID MUST be unique for a single message type on a single Circuit.
-For example, it is possible though NOT RECOMMENDED to use the same IOID concurrently
-in a CA_PROTO_WRITE request and an CA_PROTO_WRITE_NOTIFY request.
+
+It is possible though NOT RECOMMENDED to use the same IOID concurrently
+in a CA_PROTO_WRITE, a CA_PROTO_READ_NOTIFY, and a CA_PROTO_WRITE_NOTIFY request.
 
 An IOID is found in the Parameter 2 field of
 <<ca-proto-read-notify,CA_PROTO_READ_NOTIFY>>,
@@ -612,7 +608,7 @@ and <<ca-proto-write,CA_PROTO_WRITE>> messages.
 [[search-id]]
 ==== Search ID
 
-A SearchID is a client selected identifer for a PV name search.
+A SearchID is a client selected identifier for a PV name search.
 A SearchID must be unique for each client endpoint sending requests.
 
 Due to the nature of UDP it is possible for datagrams to be duplicated.
@@ -622,7 +618,7 @@ to be duplicates, and only one used.
 == Commands (TCP and UDP)
 
 The following commands are sent as either UDP datagrams or TCP messages.
-Some of the messages are also used within the context of a Virtual Circuit.
+Some of the messages are also used within the context of a Virtual Circuit (TCP connection).
 
 
 [[ca-proto-version]]
