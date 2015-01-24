@@ -874,7 +874,7 @@ Description::
 |Field|Value|Description
 |Command|13|Command identifier for `CA_PROTO_RSRV_IS_UP`.
 |Reserved|0|Must be 0.
-|Version|Version number||CA protocol version
+|Version|Version number|CA protocol version
 |Server port|>= 0|TCP Port the server is listening on.
 |BeaconID|Sequential integers|Sequential Beacon ID.
 |Address|0 or IP|May contain IP address of the server.
