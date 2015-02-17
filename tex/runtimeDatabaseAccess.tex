@@ -244,7 +244,7 @@ The \index{database access routines - List of}database access routines are:
 
 \item dbNameToAddr: Locate a database variable.
 
-\item dbGetField: Get values associated with a database variable.
+\item dbGetField: Get values associated with a database variable (implicit locking).
 
 \item dbGetLink: Get value of field referenced by database link (Macro)
 
@@ -252,7 +252,7 @@ The \index{database access routines - List of}database access routines are:
 
 \item dbGet: Routine called by \verb|dbGetLinkValue| and \verb|dbGetField|
 
-\item dbPutField: Change the value of a database variable.
+\item dbPutField: Change the value of a database variable (implicit locking).
 
 \item dbPutLink: Change value referenced by database link (Macro)
 
@@ -629,6 +629,10 @@ If this is the \verb|PROC| field or if both of the following are \verb|TRUE|:
 \item The record is unlocked.
 
 \end{enumerate}
+
+Note that this function implicitly calls \verb|dbScanLock| or in some circumstances \verb|dbScanLockMany|.
+It is therefore not be called by a thread which already called one of these functions.
+Call \verb|dbPut| instead.
 
 \subsubsection{dbPutLink and dbPutLinkValue}
 
@@ -1150,7 +1154,8 @@ Record processing is described in detail below.
 
 \section{Runtime Link Modification}
 
-Database links can be changed at run time but only via a channel access client, i.e. via calls to \verb|dbPutField| but not to \verb|dbPutLink|.
+Database links can be changed at run time but only via a channel access client,
+i.e. via calls to \verb|dbPutField|.  Link modification is not allowed by \verb|dbPut| or \verb|dbPutLink|.
 The following restrictions apply:
 
 \begin{itemize}
@@ -1208,111 +1213,6 @@ A lower priority thread in the server is responsible for transferring the events
 Currently, when an event is posted for a DBF\_STRING field or a field containing array data the value is NOT saved in the ring buffer and the client will receive whatever value happens to be in the field when the lower priority thread transfers 
 the event to the client.
 This behavior may be improved in the future.
-
-\section{Lock Set Routines}
-
-User code only calls \verb|dbScanLock| and \verb|dbScanUnlock|.
-All other routines are called by \verb|iocCore|.
-
-\subsection{dbScanLock}
-
-Lock a lock set:
-
-\begin{verbatim}
-long void dbScanLock(struct dbCommon *precord);
-\end{verbatim}
-\index{dbScanLock}
-
-Lock the lock set to which the specified record belongs.
-
-\subsection{dbScanUnlock}
-
-Unlock a lock set:
-
-\begin{verbatim}
-long void dbScanUnlock(struct dbCommon *precord);
-\end{verbatim}
-\index{dbScanUnlock}
-
-Lock the lock set to which the specified record belongs
-
-\subsection{dbLockGetLockId}
-
-Get lock set id:
-
-\begin{verbatim}
-long dbLockGetLockId(struct dbCommon *precord);
-\end{verbatim}
-\index{dbLockGetLockId}
-
-Each lock set is assigned a unique ID.
-This routine retrieves it.
-This is most useful to determine if two records are in the same lock set.
-
-\subsection{dbLockInitRecords}
-
-Determine lock sets for each record in database.
-
-\begin{verbatim}
-void dbLockInitRecords(dbBase *pdbbase);
-\end{verbatim}
-\index{dbLockInitRecords}
-
-Called by \verb|iocInit|.
-
-\subsection{dbLockSetMerge}
-
-Merge records into same lock set.
-
-\begin{verbatim}
-void dbLockSetMerge(struct dbCommon *pfirst,
-    struct dbCommon *psecond);
-\end{verbatim}
-\index{dbLockSetMerge}
-
-If specified records are not in same lock set the lock sets are merged.
-Called by dbLockInitRecords and also when links are modified by \verb|dbPutField|.
-
-\subsection{dbLockSetSplit}
-
-Recompute lock sets for given lock set
-
-\begin{verbatim}
-void dbLockSetSplit(struct dbCommon *psource);
-\end{verbatim}
-\index{dbLockSetSplit}
-
-This is called when \verb|dbPutField| modifies links.
-
-\subsection{dbLockSetGblLock}
-
-Global lock for modifying links.
-
-\begin{verbatim}
-void dbLockSetGblLock(void);
-\end{verbatim}
-\index{dbLockSetGblLock}
-
-Only one task at a time can modify link fields.
-This routine provides a global lock to prevent conflicts.
-
-\subsection{dbLockSetGblUnlock}
-
-Unlock the global lock.
-
-\begin{verbatim}
-void dbLockSetGblUnlock(void);
-\end{verbatim}
-\index{dbLockSetGblUnlock}
-
-\subsection{dbLockSetRecordLock}
-
-If record is not already scan locked lock it.
-
-\begin{verbatim}
-void dbLockSetRecordLock(struct dbCommon *precord);
-\end{verbatim}
-\index{dbLockSetRecordLock}
 
 \section{Channel Access Database Links}
 
