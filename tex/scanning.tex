@@ -155,7 +155,7 @@ void scanAdd(struct dbCommon *);
 void scanDelete(struct dbCommon *);
 double scanPeriod(int scan);
 void scanOnce(struct dbCommon *precord);
-int scanOnce3(struct dbCommon *, once_complete cb, void *usr);
+int scanOnceCallback(struct dbCommon *, once_complete cb, void *usr);
 int scanOnceSetQueueSize(int size);
 
 /*print periodic lists*/
@@ -615,7 +615,7 @@ The total number of over-runs is counted by each scan thread and can be displaye
 \begin{verbatim}
 typedef void (*once_complete)(void *usr, struct dbCommon*);
 int scanOnce (dbCommon *precord)
-int scanOnce3(struct dbCommon *, once_complete cb, void *usr)
+int scanOnceCallback(struct dbCommon *, once_complete cb, void *usr)
 \end{verbatim}
 
 A task \verb|onceTask| waits for requests to issue a \verb|dbProcess| request.
@@ -623,7 +623,7 @@ The routine \verb|scanOnce| puts the address of the record to be processed in a 
 
 This routine may be called from interrupt level.
 
-The \verb|scanOnce3| variant also takes a callback function and user pointer which are invoked from the \verb|onceTask|
+The \verb|scanOnceCallback| variant also takes a callback function and user pointer which are invoked from the \verb|onceTask|
 after the record is processed.
 
 These functions return zero when a request is successfull queued, and a non-zero error code if a request can't be queued.
