@@ -44,15 +44,18 @@ epics> dbpr ${v1}
 will print information about the \verb|somePV| process variable - the \verb|${v1}| argument to the dbpr command expands to \verb|${v2}| which expands to \verb|${v3}| which expands to \verb|somePV|.
 The backslashes in the definitions are needed to postpone the substitution of the following variables, which would otherwise be performed before the \verb|epicsEnvSet| command was run.
 
+Macro references that appear inside single-quotes are not expanded.
+
 \subsection{Quoting}
 
 Quoting is used to remove the special meaning normally assigned to certain characters and can be used to include space or quote characters in arguments.
-Quoting can not be used to extend a command over more than one input line.
+Quoting takes place after the macro expansion described above has been performed, and cannot be used to extend a command over more than one input line.
 
 There are three quoting mechanisms: the backslash character, single quotes, and double quotes.
 A backslash (\textbackslash{}) preserves the literal value of the following character.
-Enclosing characters in single or double quotes preserves the literal value of each character (except a backslash) within the quotes, except that parameter expansion still occurs within double quotes.
+Enclosing characters in single or double quotes preserves the literal value of each character (including backslashes) within the quotes.
 A single quote may occur between double quotes and a double quote may occur between single quotes.
+Note that commands called from the shell may perform additional unescaping and macro expansion on their argument strings.
 
 \subsection{Command-line editing and history}
 
