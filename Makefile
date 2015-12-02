@@ -8,7 +8,7 @@
 
 # Target installation directory
 
-INSTALL_DIR = /net/epics/Public/epics/base/R3-15/2-docs
+INSTALL_DIR = /net/epics/Public/epics/base/R3-15/3-docs
 
 
 #### Application Developers Guide
