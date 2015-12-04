@@ -2035,6 +2035,8 @@ library. Different values can be combined using logical OR operation.
   frequency of updates.
 * `DBE_ALARM` - value 4 (`0x04`) - Alarm events are reported whenever alarm
   value of the channel changes.
+* `DBE_PROPERTY` - value 8 (`0x08`) - Property events are reported when some
+  metadata value associated with the channel changes.
 
 
 [[search-reply-flag]]
