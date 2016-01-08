@@ -871,7 +871,7 @@ alias(record_name, alias_name)
 
 \begin{description}
 \index{record\_type -- record instance definition}
-\item [record\_type] The record type.
+\item [record\_type] The record type, or \verb|"*"| (see discussion under record\_name below).
 
 \index{record\_name -- record instance definition}
 \item [record\_name] The record name.
@@ -885,6 +885,7 @@ NOTE: If macro substitutions are used the name must be quoted.
 
 Duplicate definitions are normally allowed for a record as long as the record type is the same.
 The last value given for each field is the value used.
+If the duplicate definitions are being used and the record has already been loaded, subsequent definitions may use \verb|"*"| in place of the record type in the record instance.
 
 \index{dbRecordsOnceOnly}
 The variable \verb|dbRecordsOnceOnly| can be set to any non-zero value using the iocsh \verb|var| command to make loading duplicate record definitions into the IOC illegal.
