@@ -263,7 +263,7 @@ By convention:
 
 \begin{verbatim}
 path "dir:dir...:dir"
-addpath "dir:dir...:dir
+addpath "dir:dir...:dir"
 \end{verbatim}
 
 The path string follows the standard convention for the operating system, i.e. directory names are separated by a colon ``\verb|:|'' on Unix
@@ -883,7 +883,11 @@ a-z A-Z 0-9 _ - + : [ ] < > ;
 
 NOTE: If macro substitutions are used the name must be quoted.
 
-If duplicate definitions are given for the same record, then the last value given for each field is the value assigned to the field.
+Duplicate definitions are normally allowed for a record as long as the record type is the same.
+The last value given for each field is the value used.
+
+\index{dbRecordsOnceOnly}
+The variable \verb|dbRecordsOnceOnly| can be set to any non-zero value using the iocsh \verb|var| command to make loading duplicate record definitions into the IOC illegal.
 
 \index{alias\_name -- record instance definition}
 \item [alias\_name] An alternate name for the record, following the same rules as the record name.
