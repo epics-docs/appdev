@@ -388,6 +388,7 @@ If the payload size is not a multiple of 8, zero-padding must be performed to
 achieve 8-byte alignment.
 
 
+[[message-identifiers]]
 === Message Identifiers
 
 Some fields in messages serve as identifiers, which must be properly handled
@@ -2034,6 +2035,8 @@ library. Different values can be combined using logical OR operation.
   frequency of updates.
 * `DBE_ALARM` - value 4 (`0x04`) - Alarm events are reported whenever alarm
   value of the channel changes.
+* `DBE_PROPERTY` - value 8 (`0x08`) - Property events are reported when some
+  metadata value associated with the channel changes.
 
 
 [[search-reply-flag]]

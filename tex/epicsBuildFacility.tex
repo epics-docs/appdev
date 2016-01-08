@@ -2644,6 +2644,116 @@ Since the files in \$(INSTALL\_LOCATION)/cfg directory are now included by the b
 definition lines are available for use by later src directory Makefiles in the same module or by other modules with a 
 RELEASE line pointing to the TOP of this module.
 
+\subsection{Assemblies}
+
+\index{Assemblies}
+A single output file is generated from assembling specified snippet files.
+Snippet file names start with numbers and are sorted when the snippets are concatenated:
+first by the number, then alphabetical by the remaining part of the name.
+(This mechanism is conceptually similar to the Linux convention of collecting configuration file snippets
+in *.d directories.)
+
+Snippets with file names not starting with a number or ending in '\textasciitilde' are ignored. 
+The specified snippets are processed in the order they appear on the command line.
+Multiple snippets with the same number are concatenated.
+"Commands" (tags in the snippet name) can be used to control the treatment of snippets with
+the same number:
+
+\begin{description}
+\item D - Default\\
+Snippet is treated as a default, which is replaced (overwritten) by any other snippet with
+the same number.
+
+\item R - Replace\\
+Snippet is replacing (overwriting) already processed snippets with the same number.
+
+\end{description}
+
+Specification of the target file is different for architecture dependent or independent files.
+
+\begin{description}
+\item \index{COMMON\_ASSEMBLIES}\verb|COMMON_ASSEMBLIES += st.cmd|
+\item \index{ASSEMBLIES}\verb|ASSEMBLIES += mytool.rc|
+
+\end{description}
+
+Snippet files are configured specifically (relative or absolute path) or as patterns
+(searched relative to all source directories).
+
+\begin{description}
+\item \verb|mytool.rc_SNIPPETS += ../rc.d/10_head ../rc.d/20_init|
+\item \verb|st.cmd_PATTERN += st.cmd.d/*|
+
+\end{description}
+
+\subsubsection{Macros}
+The following macros can be used in snippets, and will be replaced by the current value
+when assembling is done.
+
+\begin{description}
+\item \verb|_DATETIME_|
+Date and time of the build
+
+\item \verb|_USERNAME_|
+Name of the user running the build
+
+\item \verb|_HOST_|
+Name of the host on which the build is run
+
+\item \verb|_OUTPUTFILE_|
+Name of the generated file
+
+\item \verb|_SNIPPETFILE_|
+Name of the current snippet
+
+\end{description}
+
+\subsubsection{Example}
+This mechanism can be used to create an IOC startup file from snippets in a global and
+an application specific directory, allowing applications to add commands to different phases
+of the IOC startup by dropping appropriately numbered snippets into the directory.
+
+Given the following directories and snippets:
+
+\begin{verbatim}
+/global/st.cmd.d:   (G=GLOBAL)
+    D10_init
+    20_environment
+    30_drivers
+    D40_settings
+    70_start-ioc
+\end{verbatim}
+
+\begin{verbatim}
+../st.cmd.d:        (L=LOCAL)
+    D10_init
+    40_settings
+    40_settings~
+    30_another-driver
+    R70_start-my-ioc
+\end{verbatim}
+
+And the following Makefile declaration:
+
+\begin{verbatim}
+SCRIPTS += $(COMMON_DIR)/st.cmd
+COMMON_ASSEMBLIES += st.cmd
+st.cmd_SNIPPETS += $(wildcard /global/st.cmd.d/*)
+st.cmd_PATTERN += st.cmd.d/*
+\end{verbatim}
+
+The build will create and install a \verb|st.cmd| script using the following snippets: 
+
+\begin{tabular}{lll}
+\textbf{Source} & \textbf{Snippet} & \textbf{Comment} \\ \hline
+L & \verb|10_init|            & L default resets the G default \\
+G & \verb|20_environment|     & \\
+L & \verb|30_another-driver|  & implicit addition, alphabetical sorting \\
+G & \verb|30_drivers|         & \\
+L & \verb|40_settings|        & replacing a default, ignoring backup file \\
+L & \verb|70_start-my-ioc|    & explicit replace \\
+\end{tabular}
+
 \section{Table of Makefile definitions}
 
 \index{Table of Makefile definitions}
@@ -2922,6 +3032,12 @@ that \verb|<osclass>|, the value ``\verb|-nil-|" should be specified in the rele
 \verb|<name>_RCS| & resource files needed to build a specific PROD or LIBRARY\\
 \verb|<name>_RCS_<osclass>| & os specific resource files to build a specific PROD or LIBRARY\\
 \verb|<name>_RCS_DEFAULT| & resource files needed to build a specific PROD or LIBRARY for ioc type arch systems with no \verb|RCS_<osclass>| specified\\
+\textbf{Assemblies} &    \\
+\hline
+\verb|ASSEMBLIES| & names of files to be assembled from snippets\\
+\verb|COMMON_ASSEMBLIES| & names of arch-independent files to be assembled from snippets\\
+\verb|<name>_SNIPPETS| & snippet files needed to build a specific assembly\\
+\verb|<name>_PATTERN| & patterns for snippet files (searched from all source directories) needed to build a specific assembly\\
 \textbf{Other definitions: } &    \\
 \hline
 \verb|USR_VPATH| & list of directories\\
