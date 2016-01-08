@@ -851,8 +851,11 @@ This must be composed of the following characters:
 
 NOTE: If macro substitutions are used the name must be quoted.
 
-If duplicate definitions are given for the same record, then the last value given for each field is the value assigned 
-to the field.
+Duplicate definitions are normally allowed for a record as long as the record type is the same.
+The last value given for each field is the value used.
+
+\index{dbRecordsOnceOnly}
+The variable \verb|dbRecordsOnceOnly| can be set to any non-zero value using the iocsh \verb|var| command to make loading duplicate record definitions into the IOC illegal.
 
 \index{alias\_name -- record instance definition}
 \item [alias\_name] An alternate name for the record, following the same rules as the record name.
