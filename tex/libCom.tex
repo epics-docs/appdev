@@ -1683,11 +1683,11 @@ adjustToWorstCaseAlignment() returns a value \textgreater{}= \emph{size} that an
 
 \subsection{cantProceed}
 
-\verb|cantProceed.h| describes routines that are provided for code that can't proceed when an error occurs.
+\verb|cantProceed.h| declares routines that are provided for code that can't proceed when an error occurs.
 
 \index{cantProceed.h}
 \begin{verbatim}
-void cantProceed(const char *errorMessage);
+void cantProceed(const char *errorMessage, ...);
 void *callocMustSucceed(size_t count, size_t size,const char *errorMessage);
 void *mallocMustSucceed(size_t size, const char *errorMessage);
 \end{verbatim}
@@ -1695,17 +1695,36 @@ void *mallocMustSucceed(size_t size, const char *errorMessage);
 \index{cantProceed}
 \index{callocMustSucceed}
 \index{mallocMustSucceed}
-cantProceed() issues the error message and suspends the current task - it will never return. callocMustSucceed() and mallocMustSucceed() can be used in place of \verb|calloc()| and \verb|malloc()|.
-If size or count are zero, or the memory allocation fails, they output a message and call cantProceed().
-
+\verb|cantProceed()| accepts a printf format string and variable number of arguments; it displays the error message and suspends the current task.
+It will never return.
+\verb|callocMustSucceed()| and \verb|mallocMustSucceed()| can be used in place of \verb|calloc()| and \verb|malloc()|.
+If size or count are zero, or the memory allocation fails, they output a message and call \verb|cantProceed()|.
 \index{calloc}
 \index{malloc}
-\subsection{dbDefs}
 
+\subsection{dbDefs}
 \index{dbDefs.h}
-\verb|dbDefs.h| contains definitions that are still used in base but should not be.
-Hopefully these all go away some day.
-This has been the hope for about ten years.
+\verb|dbDefs.h| includes the C header \verb|stddef.h| and then defines several generally-useful macros if they have not already been defined:
+
+\begin{itemize}
+
+\item \verb|TRUE| - 1
+
+\item \verb|FALSE| - 0
+
+\item \verb|NELEMENTS(array)| - number of elements in array.
+\index{NELEMENTS}
+
+\item \verb|CONTAINER(pointer, structure, member)| - returns a pointer to the parent structure given a pointer to a member. The \verb|structure| argument is a type name, \verb|member| is the name of the member in that structure that \verb|pointer| refers to.
+\index{CONTAINER}
+
+\item \verb|LOCAL| - synonym for \verb|static|, deprecated.
+\index{LOCAL}
+
+\item \verb|OFFSET(structure, member)| - synonym for \verb|offsetof|, deprecated.
+\index{OFFSET}
+
+\end{itemize}
 
 \subsection{epicsConvert}
 
