@@ -129,17 +129,21 @@ $(INSTALL_DIR)/%.html: %.html
 #### AppDevGuide Rules
 
 $(ADG_PDF): $(TEX_SRCS) $(DIAGS)
+	@echo "*** Creating $@ ***"
 	@rm -f pdflatex*.out
 	pdflatex $(basename $@) > pdflatex-1.out
 	makeindex $(basename $@).idx
 	pdflatex $(basename $@) > pdflatex-2.out
 	makeindex $(basename $@).idx
 	pdflatex $(basename $@) > pdflatex-3.out
+	@echo "*** Created $@ ***"
 
 $(ADG_DIR)/index.html: $(TEX_SRCS) $(EPS_SRCS)
+	@echo "*** Creating $@ ***"
 	@rm -f latex2html*.out $(ADG_DIR)/img*.png
 	latex2html $< $(L2H_OPTS) > latex2html.out
 	@echo '.'
+	@echo "*** Created $@ ***"
 
 $(DIAGS_DIR)/%.pdf: $(EPS_DIR)/%.eps $(DIAGS_DIR)
 	epstopdf $< -o=$@
@@ -155,7 +159,9 @@ $(DIAGS_DIR):
 #	a2x $(ASC_OPTS) --destination-dir=$(@D) --format=pdf $<
 
 $(CAP_DIR)/index.html: $(ASC_SRC) $(PNGS)
+	@echo "*** Creating $@ ***"
 	asciidoc $(ASC_OPTS) -o $@ $<
+	@echo "*** Created $@ ***"
 
 $(CAP_DIR)/%.png: $(DIA_DIR)/%.dia $(CAP_DIR)
 	dia -t png -e $@ $<
