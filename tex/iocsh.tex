@@ -122,7 +122,7 @@ The commands described in the sequencer documentation will also be recognized if
 Command & Description\\
 \hline
 help [command ...] & Display synopsis of specified commands.  Wild-card matching is applied so `help db*' displays a synopsis of all commands beginning with the letters `db'. With no arguments this displays a list of all commands.\\
-\# & A `\#' as the first non-whitespace character on a line marks the beginning of a comment, which continues to the end of the line (however some versions of Base may require a space after the `\#' character to properly recognize it as a comment)\\
+\# & A `\#' as the first non-whitespace character on a line marks the beginning of a comment, which continues to the end of the line (however some versions of Base may require a space after the `\#' character to properly recognize it as a comment). If the '#' character is immediately followed by a '-', the commented line will not be echoed into the IOC shell output.\\
 exit & Stop reading commands. When the top-level command interpreter encounters an exit command or end-of-file (EOF) it returns to its caller.\\
 cd directory & Change working directory to directory.\\
 pwd & Print the name of the working directory.\\
