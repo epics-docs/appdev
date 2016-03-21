@@ -142,6 +142,7 @@ The most important definitions in this file are:
 typedef struct ioscan_head *IOSCANPVT;
 typedef struct event_list *EVENTPVT;
 typedef void (*io_scan_complete)(void *usr, IOSCANPVT, int prio);
+typedef void (*once_complete)(void *usr, struct dbCommon*);
 
 long scanInit(void);
 void scanRun(void);
@@ -155,6 +156,7 @@ void scanAdd(struct dbCommon *);
 void scanDelete(struct dbCommon *);
 double scanPeriod(int scan);
 void scanOnce(struct dbCommon *precord);
+int scanOnceCallback(struct dbCommon *, once_complete cb, void *usr);
 int scanOnceSetQueueSize(int size);
 
 /*print periodic lists*/
@@ -167,6 +169,7 @@ epicsShareFunc int scanpel(const char *event_name);
 epicsShareFunc int scanpiol(void);
 
 void scanIoInit(IOSCANPVT *ppios);
+unsigned int scanIoImmediate(IOSCANPVT pios, int prio);
 unsigned int scanIoRequest(IOSCANPVT pios);
 void scanIoSetComplete(IOSCANPVT, io_scan_complete, void *usr);
 \end{verbatim}
@@ -292,18 +295,24 @@ This routine will be called each time the record pointed to by \verb|precord| is
 The \verb|cmd| argument will be zero if the record is being added to an I/O event list, 1 if it is being deleted from the list.
 This routine must set \verb|*ppvt| to the \verb|IOSCANPVT| variable associated with this record.
 
-\item Whenever an I/O event is detected, the device software must call \verb|scanIoRequest|, e.g.
+\item Whenever an I/O event is detected, the device software must call \verb|scanIoRequest| or \verb|scanIoImmediate|, e.g.
 
 \begin{verbatim}
 scanIoRequest(ioscanpvt);
+scanIoImmediate(ioscanpvt, priorityLow);
 \end{verbatim}
 
-This routine can be called from interrupt level.
-The request is queued and will be handled by one of the standard callback threads.
+The routine \verb|scanIoRequest()| may be safely called from interrupt level.
+A request is queued and will be handled by one of the standard callback threads.
 There are three sets of callback threads fed from three queues, one for each priority level (see section \ref{sec:callbackThreads}); the \verb|PRIO| field of a record determines which queue will be used for processing this record after \verb|scanIoRequest()| has been called.
 
-\verb|scanIoRequest()| will return a bit pattern indicating which of the three queues the request was sent to.
-A return value of zero means no records are currently configured to use this interrupt source for I/O Interrupt scanning.
+The routine \verb|scanIoImmediate()| may not be called from interrupt level.
+Instead of queuing a request, this routine directly processes records on the current thread.
+Unlike \verb|scanIoRequest|, this routine only scans records with the given priority level.
+It must therefore be called three times, once for each priority level.
+
+\verb|scanIoRequest()| returns a bit pattern indicating which priority queues the request was added to.
+A return value of zero means that no records are currently configured to use this interrupt source for I/O Interrupt scanning.
 
 \item Device or driver support that needs to implement flow control can set up a completion callback by calling \verb|scanIoSetComplete|, e.g.
 
@@ -531,6 +540,23 @@ It may be called from interrupt level.
 It looks at each \verb|io_scan_list| referenced by \verb|pios| (one for each callback priority) and if any elements are present in the \verb|scan_list| a \verb|callbackRequest| is issued.
 The appropriate callback task calls routine \verb|ioscanCallback|, which calls \verb|scanList| followed by any completion callback that was registered with \verb|pios|.
 
+The \verb|scan_element| is then added to or deleted from the correct scan list.
+
+\subsubsection{scanIoImmediate}
+
+\index{scanIoRequest}
+\begin{verbatim}
+unsigned int scanIoImmediate(IOSCANPVT pios, int prio)
+\end{verbatim}
+
+Scans any records in the given IOSCANPVT with the given priority.
+Record processing is done using the current thread.
+This is intended to allow device or driver support to implement private scanning threads.
+However links in these records may result in other records also being processed using the same thread.
+
+Such device or driver support should call \verb|scanIoImmediate| for all priority levels.
+For maximum throughput these calls can be made concurrently.
+
 \subsection{Periodic Scanning}
 
 \index{Periodic Scanning}
@@ -589,13 +615,19 @@ The total number of over-runs is counted by each scan thread and can be displaye
 
 \index{scanOnce}
 \begin{verbatim}
-void scanOnce (dbCommon *precord)
+typedef void (*once_complete)(void *usr, struct dbCommon*);
+int scanOnce (dbCommon *precord)
+int scanOnceCallback(struct dbCommon *, once_complete cb, void *usr)
 \end{verbatim}
 
 A task \verb|onceTask| waits for requests to issue a \verb|dbProcess| request.
 The routine \verb|scanOnce| puts the address of the record to be processed in a ring buffer and wakes up \verb|onceTask|.
 
 This routine may be called from interrupt level.
+
+The \verb|scanOnceCallback| variant also takes a callback function and user pointer; the completion function is invoked from the \verb|onceTask| after the record has been processed.
+
+These functions return zero when a request is successfull queued, and a non-zero error code if a request can't be queued.
 
 \subsubsection{SetQueueSize}
 
