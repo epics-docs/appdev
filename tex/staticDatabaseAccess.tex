@@ -6,7 +6,7 @@ An IOC database is created on a Unix system via a Database Configuration Tool an
 EPICS provides two sets of database access routines:
 Static Database Access and Runtime Database Access.
 Static database access can be used on Unix or IOC database files.
-Runtime database requires an initialized IOC databases.
+Runtime database requires an initialized IOC database.
 Static database access is described in this chapter, runtime database access in the next chapter.
 
 Static database access provides a simplified interface to a database, i.e. much of the complexity is hidden.
@@ -408,16 +408,27 @@ This routine returns the default value for the field that DBENTRY currently refe
 does not point to a field or if the default value is NULL.
 
 \subsection{Get Field Prompt}
+\label{subsec:Get Field Prompt}
 
 \begin{verbatim}
 char *dbGetPrompt(DBENTRY *pdbentry);
-int   dbGetPromptGroup(DBENTRY *pdbentry); 
+int   dbGetPromptGroup(DBENTRY *pdbentry);
+char *dbGetPromptGroupNameFromKey(DBBASE *pdbbase, const short key);
+short dbGetPromptGroupKeyFromName(DBBASE *pdbbase, const char *name);
 \end{verbatim}
 
 \index{dbGetPrompt}
 \index{dbGetPromptGroup}
+\index{dbGetPromptGroupNameFromKey}
+\index{dbGetPromptGroupKeyFromName}
 The \verb|dbGetPrompt| routine returns the character string prompt value, which provides a short description of the field.
-\verb|dbGetPromptGroup| returns the field group as described in guigroup.h.
+\verb|dbGetPromptGroup| returns the field's gui group key.
+
+Conversion between the gui group key and the gui group name is provided by two conversion functions.
+\verb|dbGetPromptGroupNameFromKey| returns a pointer to a static string containing the name of the gui group,
+\verb|NULL| for an invalid key.
+\verb|dbGetPromptGroupKeyFromName| returns the numerical key related to the specified gui group string,
+\verb|0| if the string is not a valid gui group.
 
 \section{Manipulating Record Attributes}
 
