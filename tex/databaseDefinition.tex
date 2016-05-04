@@ -58,7 +58,7 @@ recordtype(record_type) {
     field(field_name, field_type) {
         asl(asl_level)
         initial("init_value")
-        promptgroup(gui_group)
+        promptgroup("group_name")
         prompt("prompt_value")
         special(special_value)
         pp(pp_value)
@@ -356,7 +356,7 @@ recordtype(record_type) {
     field(field_name, field_type) {
         asl(as_level)
         initial("init_value")
-        promptgroup(gui_group)
+        promptgroup("group_name")
         prompt("prompt_value")
         special(special_value)
         pp(pp_value)
@@ -468,43 +468,50 @@ This is because only the \verb|VAL| field should be modified during normal opera
 \index{prompt\_value -- field definition}
 \item [prompt\_value] A prompt value for database configuration tools.
 
-\index{gui\_group -- field definition}
-\item [gui\_group] This must be one of the following:
+\index{group\_name -- field definition}
+\item [group\_name] A string used by database configuration tools (DCTs) to group related fields together.
+
+A \verb|promptgroup| should only be set for fields that can sensibly be configured in a record instance file.
+
+The set of group names is no longer fixed.
+In earlier versions of Base the predefined set of choices beginning \verb|GUI_| were the only group names permitted.
+Now the group name strings found in the database definition file are collected and stored in a global list.
+The strings given for group names must match exactly for fields to be grouped together.
+
+To support sorting and handling of groups, the names used in Base have the following conventions:
 
 \begin{itemize}
-\item \verb|GUI_COMMON|
-\item \verb|GUI_ALARMS|
-\item \verb|GUI_BITS1|
-\item \verb|GUI_BITS2|
-\item \verb|GUI_CALC|
-\item \verb|GUI_CLOCK|
-\item \verb|GUI_COMPRESS|
-\item \verb|GUI_CONVERT|
-\item \verb|GUI_DISPLAY|
-\item \verb|GUI_HIST|
-\item \verb|GUI_INPUTS|
-\item \verb|GUI_LINKS|
-\item \verb|GUI_MBB|
-\item \verb|GUI_MOTOR|
-\item \verb|GUI_OUTPUT|
-\item \verb|GUI_PID|
-\item \verb|GUI_PULSE|
-\item \verb|GUI_SELECT|
-\item \verb|GUI_SEQ1|
-\item \verb|GUI_SEQ2|
-\item \verb|GUI_SEQ3|
-\item \verb|GUI_SUB|
-\item \verb|GUI_TIMER|
-\item \verb|GUI_WAVE|
-\item \verb|GUI_SCAN|
-
-This information is for use by Database Configuration Tools.
-This is defined only for fields that can be given values by database configuration tools.
-File \verb|guigroup.h| contains all possible definitions.
-This allows database configuration tools to group fields together by functionality, not just order them by name.
-This feature has seldom been used, so many record types do not have appropriate values assigned to some fields.
-
+\item Names start with a two-digit number followed by a space-dash-space sequence.
+\item Names are designed to be presented in ascending numerical order.
+\item The group name (or possibly just the part following the dash) may be displayed by the tool as a title for the group.
+\item In many-of-the-same-kind cases (e.g. 21 similar inputs) fields are distributed over multiple groups.
+Once-only fields appear in groups numbered in multiples of 5 or 10.
+The groups with the multiple instances follow in +1 increments.
+This allows more sophisticated treatment, e.g. showing the first group open and the other groups collapsed.
 \end{itemize}
+
+Record types may define their own group names.
+However, to improve consistency, records should use the following names from Base where possible.
+(This set also demonstrates that the group names used in different record types may share the same number.)
+
+\begin{itemize}
+\item [10 - Common] General fields that are common to all or many record types
+\item [20 - Scan] Scanning mechanism, priority and related properties
+\item [30 - Action] Record type specific behavior and processing action
+\item [40 - Link] Links and related properties
+\item [40 - Input] Input links and properties
+\item [50 - Output] Output links and properties
+\item [60 - Convert] Conversion between raw and engineering values
+\item [70 - Alarm] Alarm related properties, severities and thresholds
+\item [80 - Display] Client related configuration, strings, deadbands
+\item [90 - Simulate] Simulation mode related properties
+\end{itemize}
+
+NOTE: Older versions of Base contained a header file \verb|guigroup.h| defining a fixed set of group names and their matching index numbers.
+That header file has been removed.
+The static database access library now provides functions to convert between
+group index keys and the associated group name strings.
+See \ref{subsec:Get Field Prompt} for details.
 
 \index{special\_value -- field definition}
 \item [special\_value] Must be one of the following:
@@ -585,27 +592,36 @@ The following is the definition of the event record type:
 \begin{verbatim}
 recordtype(event) {
     include "dbCommon.dbd" 
-    field(VAL,DBF_USHORT) {
-        prompt("Event Number To Post")
-        promptgroup(GUI_INPUTS)
+    field(VAL,DBF_STRING) {
+        prompt("Event Name To Post")
+        promptgroup("40 - Input")
+        special(SPC_MOD)
         asl(ASL0)
+        size(40)
+    }
+    field(EPVT, DBF_NOACCESS) {
+        prompt("Event private")
+        special(SPC_NOMOD)
+        interest(4)
+        extra("EVENTPVT epvt")
     }
     field(INP,DBF_INLINK) {
         prompt("Input Specification")
-        promptgroup(GUI_INPUTS)
+        promptgroup("40 - Input")
         interest(1)
     }
     field(SIOL,DBF_INLINK) {
         prompt("Sim Input Specifctn")
-        promptgroup(GUI_INPUTS)
+        promptgroup("90 - Simulate")
         interest(1)
     }
-    field(SVAL,DBF_USHORT) {
+    field(SVAL,DBF_STRING) {
         prompt("Simulation Value")
+        size(40)
     }
     field(SIML,DBF_INLINK) {
         prompt("Sim Mode Location")
-        promptgroup(GUI_INPUTS)
+        promptgroup("90 - Simulate")
         interest(1)
     }
     field(SIMM,DBF_MENU) {
@@ -615,7 +631,7 @@ recordtype(event) {
     }
     field(SIMS,DBF_MENU) {
         prompt("Sim mode Alarm Svrty")
-        promptgroup(GUI_INPUTS)
+        promptgroup("90 - Simulate")
         interest(2)
         menu(menuAlarmSevr)
     }
@@ -1328,7 +1344,7 @@ recordtype(ao) {
     include "dbCommon.dbd" 
     field(VAL,DBF_DOUBLE) {
         prompt("Desired Output")
-        promptgroup(GUI_OUTPUT)
+        promptgroup("50 - Output")
         asl(ASL0)
         pp(TRUE)
     }

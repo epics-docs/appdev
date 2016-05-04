@@ -3,9 +3,10 @@
 
 \section{Overview}
 
-This chapter describes the internal structures describing an IOC database. It is of interest to EPICS system developers but 
-serious application developers may also find it useful. This chapter is intended to make it easier to understand the IOC 
-source listings. It also gives a list of the header files used by IOC Code.
+This chapter describes the internal structures describing an IOC database.
+It is of interest to EPICS system developers but serious application developers may also find it useful.
+This chapter was intended to make it easier to understand the IOC source listings, but the information in it is likely to be outdated.
+It also lists some of the header files provided for interfacing to IOC code.
 
 \section{Include Files}
 
@@ -13,9 +14,7 @@ This section lists the files in base/include that are of most interest to IOC Ap
 
 \begin{description}
 
-\item[alarm.h alarmString.h] - These files contain definitions for all alarm status and severity values.
-
-\item[cadef.h caerr.h caeventmask.h] - These files are of interest to anyone writing channel access clients.
+\item[alarm.h] - Definitions for alarm status and severity values.
 
 \item[callback.h] - The definitions for the General Purpose callback system.
 
@@ -39,34 +38,15 @@ This section lists the files in base/include that are of most interest to IOC Ap
 
 \item[drvSup.h] - Driver Support Modules
 
-\item[ellLib.h] - A library that is provides the same functions as the vxWorks \verb|lstLib|. All routines start with \verb|ell| instead of 
-\verb|lst|.  The \verb|ellLib| routines work on all architectures.
-
-\item[epicsPrint.h errMdef.h] - EPICS error handling system
-
-\item[fast\_lock.h] - The FASTLOCK routines.
-
-\item[freeList.h] - A general purpose free list facility
-
-\item[gpHash.h] - A general purpose hash library.
-
-\item[guigroup.h] - The guigroup definitions.
-
 \item[initHooks.h] - Definitions used by \verb|initHooks.c| routines.
 
 \item[link.h] - Link definitions
-
-\item[module\_types.h] - VME hardware configuration. SHOULD NOT BE USED BY NEW SUPPORT.
 
 \item[recSup.h] - The record global routines.
 
 \item[special.h] - Definitions for special fields, i.e. \verb|SPC_xxx|.
 
-\item[task\_params.h] - Definitions for task priorities, stack space, etc.
-
 \item[taskwd.h] - Task Watchdog System
-
-\item[epicsTime.h] - Time stamp routines.
 
 \end{description}
 
