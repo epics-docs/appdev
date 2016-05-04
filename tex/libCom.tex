@@ -411,31 +411,29 @@ unsigned long cvtUlongToBits(
 
 \section{cxxTemplates}
 
-This directory contains the following C++ template headers:
+This directory contains various C++ template headers and APIs:
 
 \begin{itemize}
-\item \verb|resourceLib.h| - A C++ hash facility that implements the same functionality as bucketLib
 
-\item \verb|tsBTree.h| - Binary tree.
+\item \verb|epicsGuard.h| - Mutex guard classes
 
-\item \verb|tsDLList.h| - Double Linked List
+\item \verb|epicsSingleton.h| - Single object enforcement
+
+\item \verb|resourceLib.h| - Hash tables
+
+\item \verb|tsDLList.h| - Double Linked Lists
 
 \item \verb|tsFreeList.h| - Free List for efficient new/delete
 
-\item \verb|tsMinMax.h| - min and max.
-
-\item \verb|tsSLList.h| - Single Linked List
+\item \verb|tsSLList.h| - Single Linked Lists
 
 \end{itemize}
 
 \index{resourceLib.h}
-\index{tsBTree.h}
 \index{tsDLList.h}
 \index{tsFreeList.h}
-\index{tsMinMax.h}
 \index{tsSLList.h}
 Currently these are only being used by Channel Access Clients and the portable Channel Access Server.
-It has not been decided if any of these will remain in libCom.
 
 \section{dbmf}
 
