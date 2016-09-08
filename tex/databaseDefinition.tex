@@ -151,11 +151,12 @@ In the summary section, some values are shown as quoted strings and some unquote
 The actual rule is that any string consisting of only the following characters does not need to be quoted unless it contains one of the above keywords:
 
 \begin{verbatim}
-a-z A-Z 0-9 _ - : . [ ] < > ;
+a-z A-Z 0-9 _ + - : . [ ] < > ;
 \end{verbatim}
 
-These are also the legal characters for process variable names.
-Thus in many cases quotes are not needed.
+These are all legal characters for process variable names, although \verb|.| is not allowed in a record name since it separates the record from the field name in a PV name.
+Thus in many cases quotes are not needed around record or field names in database files.
+Any string containing a macro does need to be quoted though.
 
 \subsection{Quoted Strings}
 
