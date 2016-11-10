@@ -6,7 +6,7 @@
 If a main program is required (most likely on all environments except vxWorks and RTEMS), then initialization is performed by statements residing in startup scripts which are executed by \verb|iocsh|.
 An example main program is:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int main(int argc,char *argv[])
 {
     if (argc >= 2) {
@@ -17,7 +17,7 @@ int main(int argc,char *argv[])
     epicsExit(0)
     return 0;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \index{iocsh}
 The first call to \verb|iocsh| executes commands from the startup script filename which must be passed as an argument to the program.
@@ -102,16 +102,16 @@ This script is often similar or identical to the one used with vxWorks.
 The RTEMS startup code calls
 
 \index{epicsRtemsInitPreSetBootConfigFromNVRAM}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 epicsRtemsInitPreSetBootConfigFromNVRAM(struct rtems_bsdnet_config *);
-\end{verbatim}
+\end{lstlisting}
 
 just before setting the initialization parameters from non-volatile memory, and
 
 \index{epicsRtemsInitPostSetBootConfigFromNVRAM}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 epicsRtemsInitPostSetBootConfigFromNVRAM(struct rtems_bsdnet_config *);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsRtemsInitHooks.h}
 just after setting the initialization parameters.
@@ -398,7 +398,7 @@ The states are defined in \verb|initHooks.h|, which contains the following defin
 \index{initHookFunction}
 \index{initHookRegister}
 \index{initHookName}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef enum {
     initHookAtIocBuild = 0,         /* Start of iocBuild/iocInit commands */
     initHookAtBeginning,
@@ -435,13 +435,13 @@ typedef enum {
 typedef void (*initHookFunction)(initHookState state);
 int initHookRegister(initHookFunction func);
 const char *initHookName(int state);
-\end{verbatim}
+\end{lstlisting}
 
 Any functions that are registered before \verb|iocInit| reaches the desired state will be called when it reaches that state.
 The \verb|initHookName| function returns a static string representation of the state passed into it which is intended for printing.
 The following skeleton code shows how to use this facility:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static initHookFunction myHookFunction;
 
 int myHookInit(void)
@@ -462,7 +462,7 @@ static void myHookFunction(initHookState state)
       break;
   }
 }
-\end{verbatim}
+\end{lstlisting}
 
 An arbitrary number of functions can be registered.
 

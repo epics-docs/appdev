@@ -50,9 +50,9 @@ provided by a driver.
 File \verb|drvSup.h| describes the format of a driver support entry table. The driver support module must supply a driver entry 
 table. An example definition is:
 
-\begin{verbatim}
-LOCAL long report();
-LOCAL long init();
+\begin{lstlisting}[language=C]
+static long report(int level);
+static long init(void);
 struct {
         long    number;
         DRVSUPFUN       report;
@@ -63,7 +63,7 @@ struct {
         init
 };
 epicsExportAddress(drvet,drvGpib);
-\end{verbatim}
+\end{lstlisting}
 
 \index{Driver Support Entry Table Example}The above example is for the Allen Bradley driver. It has an associated ascii definition of:
 
@@ -78,12 +78,12 @@ Thus it is seen that the driver support module should supply two EPICS callable 
 This routine, which has no arguments, is called by \verb|iocInit|. The driver is expected to look for and initialize the 
 hardware it supports. As an example the init routine for Allen Bradley is:
 
-\begin{verbatim}
-LOCAL long init()
+\begin{lstlisting}[language=C]
+static long init(void)
 {
     return(ab_driver_init());
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{report}
 
@@ -91,12 +91,12 @@ The report routine is called by the \verb|dbior| IOC test routine. It is respons
 hardware it found at init time. It is passed one argument, level, which is a hint about how much information to display. An 
 example, taken from Allen Bradley, is:
 
-\begin{verbatim}
-LOCAL long report(int level)
+\begin{lstlisting}[language=C]
+static long report(int level)
 {
    return(ab_io_report(level));
 }
-\end{verbatim}
+\end{lstlisting}
 
 Guidelines for level are as follows:
 

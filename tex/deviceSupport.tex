@@ -47,7 +47,7 @@ phases, writes the new value. The EPICS Allen Bradley device/driver support is a
 
 \section{Example Synchronous Device Support Module}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* Create the dset for devAiSoft */
 long init_record();
 long read_ai();
@@ -106,7 +106,7 @@ static long read_ai(void *precord)
     if (pai->inp.type!=CONSTANT && RTN_SUCCESS(status)) pai->udf = FALSE;
     return(2); /*don't convert*/
 }
-\end{verbatim}
+\end{lstlisting}
 
 \index{synchronous device support example}
 The example is \verb|devAiSoft|, which supports soft analog inputs.
@@ -152,7 +152,7 @@ The next time process is called everything starts all over.
 
 Note that this is somewhat of an artificial example since real code of this form would more likely use the callbackcallbackRequestProcessCallbackDelayed function to perform the required processing.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static void myCallback(CALLBACK *pcallback)
 {
     struct dbCommon *precord;
@@ -217,7 +217,7 @@ struct {
     NULL
 };
 epicsExportAddress(dset,devAiTestAsyn);
-\end{verbatim}
+\end{lstlisting}
 
 \section{Device Support Routines}
 
@@ -226,10 +226,10 @@ Any routine that does not apply to a specific record type must be declared \verb
 
 \subsection{Generate Device Report}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long report(
     int   interest);
-\end{verbatim}
+\end{lstlisting}
 
 \index{report - device support routine}
 This routine is responsible for reporting all I/O cards it has found.
@@ -240,10 +240,10 @@ If a device support module is using a driver, it may choose not to implement thi
 \label{subsec:Initialize Device Processing}
 
 \index{Initialize Record Processing}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long init(
     int   after);
-\end{verbatim}
+\end{lstlisting}
 
 \index{init - device support routine}
 This routine is called twice at IOC initialization time.
@@ -255,22 +255,22 @@ This routine is called twice: once before any database records are initialized, 
 \label{subsec:Initialize Specific Record}
 
 \index{Initialize Specific Record}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long init_record(
     void *precord);   /* addr of record*/
-\end{verbatim}
+\end{lstlisting}
 
 \index{init\_record - device support routine}
 The record support \verb|init_record| routine calls this routine.
 
 \subsection{Get I/O Interrupt Information}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_ioint_info(
     int   cmd,
     struct dbCommon   *precord,
     IOSCANPVT   *ppvt);
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_ioint\_info - device support routine}
 This is called by the I/O interrupt scan task.
@@ -342,7 +342,7 @@ software already takes care of changes to PV\_LINK addresses.
 
 The following is an example of a DSXT and the initialization routine that registers it:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static struct dsxt myDsxt = {
     add_record, del_record
 };
@@ -351,7 +351,7 @@ static long init(int pass) {
     if (pass==0) devExtend(&myDsxt);
     return 0;
 }
-\end{verbatim}
+\end{lstlisting}
 
 A call to \verb|devExtend| can only be made during the first pass of the device support initialization process, and registers the DSXT for that device support layer.
 If called at any other time it will log an error message and immediately return.
@@ -360,12 +360,12 @@ If called at any other time it will log an error message and immediately return.
 
 The full definition of \verb|struct dsxt| is found in devSup.h and currently looks like this:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct dsxt {
     long (*add_record)(struct dbCommon *precord);
     long (*del_record)(struct dbCommon *precord);
 } dsxt;
-\end{verbatim}
+\end{lstlisting}
 
 \index{struct dsxt}
 There may be future additions to this table to support additional functionality; such extensions may only be made by changing the devSup.h header file and rebuilding EPICS Base and all support modules, thus neither record types nor device support are permitted to make any private use of this table.
@@ -376,10 +376,10 @@ The return value from the routines should be zero for success, or an EPICS error
 
 \subsection{Add Record Routine}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long add_record(
     struct dbCommon *precord);
-\end{verbatim}
+\end{lstlisting}
 
 \index{add\_record}
 This function is called to offer a new record to the device support.
@@ -409,10 +409,10 @@ This will cause the record's PACT field to be set, preventing any further proces
 
 \subsection{Delete Record Routine}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long del_record(
     struct dbCommon *precord);
-\end{verbatim}
+\end{lstlisting}
 
 \index{del\_record}
 This function is called to notify the device support of a request to change the hardware address of a record, and allow the device support to free up any resources it may have dedicated to this particular record.

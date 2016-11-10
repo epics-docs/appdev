@@ -133,7 +133,7 @@ All software components that interact with the scanning system must include this
 
 The most important definitions in this file are:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #define SCAN_PASSIVE       menuScanPassive
 #define SCAN_EVENT         menuScanEvent
 #define SCAN_IO_EVENT      menuScanI_O_Intr
@@ -169,7 +169,7 @@ epicsShareFunc int scanpiol(void);
 void scanIoInit(IOSCANPVT *ppios);
 unsigned int scanIoRequest(IOSCANPVT pios);
 void scanIoSetComplete(IOSCANPVT, io_scan_complete, void *usr);
-\end{verbatim}
+\end{lstlisting}
 
 \index{SCAN\_1ST\_PERIODIC}
 The first set of definitions defines the various scan types.
@@ -179,9 +179,9 @@ These are described in the following subsections.
 
 \subsection{Initializing And Controlling Database Scaning}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long scanInit(void);
-\end{verbatim}
+\end{lstlisting}
 
 \index{scanInit}
 The routine \verb|scanInit| is called by \verb|iocInit|.
@@ -190,11 +190,11 @@ It initializes the scanning system.
 \index{scanRun}
 \index{scanPause}
 \index{scanShutdown}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void scanRun(void);
 void scanPause(void);
 void scanShutdown(void);
-\end{verbatim}
+\end{lstlisting}
 
 These routines start, pause and stop all the scan tasks respectively.
 They are used by the \verb|iocInit|, \verb|iocRun|, \verb|iocPause| and \verb|iocShutdown| commands.
@@ -205,10 +205,10 @@ The following routines are called each time a record is added to or deleted from
 
 \index{scanAdd}
 \index{scanDelete}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 scanAdd(struct dbCommon *);
 scanDelete(struct dbCommon *);
-\end{verbatim}
+\end{lstlisting}
 
 These routines are called by \verb|scanInit| at IOC initialization time in order to enter all records into the correct scan list.
 The routine \verb|dbPut| calls \verb|scanDelete| and \verb|scanAdd| each time a scan-related field is changed (scan-related fields are declared to be \verb|SPC_SCAN| in \verb|dbCommon.dbd|).
@@ -216,9 +216,9 @@ The routine \verb|dbPut| calls \verb|scanDelete| and \verb|scanAdd| each time a 
 
 \subsection{Obtaining the scan period from the SCAN field}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 double scanPeriod(int scan);
-\end{verbatim}
+\end{lstlisting}
 
 \index{scanPeriod}
 The argument is the index into the set of enum choices from menuScan.dbd.
@@ -233,9 +233,9 @@ Database events used to be numbered with 8-bit integers and did not have to be d
 Since Base 3.15 though events can now be named, in which case they must be declared to convert the name into an event object.
 
 \index{eventNameToHandle}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 EVENTPVT eventNameToHandle(const char* event);
-\end{verbatim}
+\end{lstlisting}
 
 This routine must be called from task context (i.e. not from an interrupt service routine) to convert an event's name into an associated \verb|EVENTPVT| handle.
 The first time each name is seen a handle will be created for it; subsequent calls to \verb|eventNameToHandle| with the same name will return the same handle.
@@ -244,10 +244,10 @@ A database event is triggered by calling one of:
 
 \index{postEvent}
 \index{post\_event}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void postEvent(EVENTPVT eventObj);
 void post_event(int eventNum) EPICS_DEPRECATED;
-\end{verbatim}
+\end{lstlisting}
 
 The original integer \verb|post_event| routine is now deprecated in favor of the new routine \verb|postEvent| that takes an event handle instead of the event number.
 These event-posting routines may be called by virtually any IOC software component, including from an interrupt service routine on VxWorks or RTEMS.
@@ -269,24 +269,24 @@ Interfacing to the I/O event scanner is done via some combination of device and 
 
 \item Declare an \verb|IOSCANPVT| variable, e.g.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static IOSCANPVT ioscanpvt;
-\end{verbatim}
+\end{lstlisting}
 
 \item Call \verb|scanIoInit| during initialization, e.g.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 scanIoInit(&ioscanpvt);
-\end{verbatim}
+\end{lstlisting}
 \end{enumerate}
 
 \item Provide the device support \verb|get_ioint_info| routine.
 This routine has the prototype:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_ioint_info(int cmd, struct dbCommon *precord,
     IOSCANPVT *ppvt);
-\end{verbatim}
+\end{lstlisting}
 
 This routine will be called each time the record pointed to by \verb|precord| is added to or deleted from an I/O Event scan list.
 The \verb|cmd| argument will be zero if the record is being added to an I/O event list, 1 if it is being deleted from the list.
@@ -294,9 +294,9 @@ This routine must set \verb|*ppvt| to the \verb|IOSCANPVT| variable associated w
 
 \item Whenever an I/O event is detected, the device software must call \verb|scanIoRequest|, e.g.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 scanIoRequest(ioscanpvt);
-\end{verbatim}
+\end{lstlisting}
 
 This routine can be called from interrupt level.
 The request is queued and will be handled by one of the standard callback threads.
@@ -307,13 +307,13 @@ A return value of zero means no records are currently configured to use this int
 
 \item Device or driver support that needs to implement flow control can set up a completion callback by calling \verb|scanIoSetComplete|, e.g.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static void myCallback(void *arg, IOSCANPVT pvt, int prio) {
     ...
 }
 
 scanIoSetComplete(ioscanpvt, myCallback, (void *)arg);
-\end{verbatim}
+\end{lstlisting}
 
 The completion callback will be run from one of the callback threads, once per priority actually used (bits set in the return value of \verb|scanIoRequest|), after the list of records with that priority level has been processed.
 Note that for records with asynchronous device support, record processing might not have completed when the callback is run.
@@ -321,7 +321,7 @@ Note that for records with asynchronous device support, record processing might 
 
 The following code fragment shows an event record device support module that supports I/O event scanning: 
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include  <vxWorks.h>
 #include  <types.h>
 #include  <stdioLib.h>
@@ -369,7 +369,7 @@ IOSCANPVT   *ppvt)
     *ppvt = ioscanpvt;
     return(0);
 }
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_ioint\_info}
 \section{Implementation Overview}
@@ -381,7 +381,7 @@ This section gives an overview of how this code is organized.
 
 Everything is built around two basic structures:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct scan_list {
     epicsMutexId lock;
     ELLLIST      list;
@@ -393,7 +393,7 @@ typedef struct scan_element{
     scan_list       *pscan_list;
     struct dbCommon *precord;
 }
-\end{verbatim}
+\end{lstlisting}
 
 Each \verb|scan_list.list| is the head of a list of \verb|scan_element| nodes pointing to records that all belong to the same scan set.
 For example, all records that are periodically scanned at the 1 second rate are in the same scan set.
@@ -415,11 +415,11 @@ The following access a single scan set:
 \item \verb|scanList| - This routine is the heart of the scanning system.
 For each record in a scan set it does the following:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 dbScanLock(precord);
 dbProcess(precord);
 dbScanUnlock(precord);
-\end{verbatim}
+\end{lstlisting}
 
 It also has code to recognize when a scan list is modified while the scan set is being processed.
 
@@ -435,7 +435,7 @@ It also has code to recognize when a scan list is modified while the scan set is
 \index{Event Scanning}
 Event scanning is built around the following definitions:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct event_list {
     CALLBACK           callback[NUM_CALLBACK_PRIORITIES];
     scan_list          scan_list[NUM_CALLBACK_PRIORITIES];
@@ -445,7 +445,7 @@ typedef struct event_list {
 
 static event_list * volatile pevent_list[256];
 static epicsMutexId event_lock;
-\end{verbatim}
+\end{lstlisting}
 
 Event scanning uses the general purpose callback tasks to perform record processing, i.e. no extra threads are spawned for this.
 When a named event is declared by a call to \verb|eventNameToHandle()| an \verb|event_list| will be created for that named event.
@@ -457,9 +457,9 @@ It provides fast access to 255 numbered events, i.e. one for each possible numer
 \subsubsection{postEvent}
 
 \index{postEvent}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void postEvent(event_list *pel);
-\end{verbatim}
+\end{lstlisting}
 
 This routine is called to request an event scan for a named event handle.
 It may be called from interrupt level.
@@ -469,9 +469,9 @@ The appropriate callback task calls routine \verb|eventCallback|, which just cal
 \subsubsection{post\_event}
 
 \index{post\_event}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void post_event(int eventNum) EPICS_DEPRECATED;
-\end{verbatim}
+\end{lstlisting}
 
 This routine is called to request an event scan for a numbered event.
 It may be called from interrupt level.
@@ -482,7 +482,7 @@ It looks up the \verb|event_list| indicated by the given event number and calls 
 \index{I/O Event Scanning}
 I/O event scanning is built around the following definitions:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct io_scan_list {
     CALLBACK callback;
     scan_list scan_list;
@@ -497,7 +497,7 @@ typedef struct ioscan_head {
 
 static ioscan_head *pioscan_list = NULL;
 static epicsMutexId ioscan_lock;
-\end{verbatim}
+\end{lstlisting}
 
 I/O event scanning uses the general purpose callback tasks to perform record processing, i.e. no extra threads are spawned for this.
 The callback field of \verb|io_scan_list| is used to communicate with the callback tasks.
@@ -507,9 +507,9 @@ The following routines implement I/O event scanning:
 \subsubsection{scanIoInit}
 
 \index{scanIoInit}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void scanIoInit(IOSCANPVT *ppios)
-\end{verbatim}
+\end{lstlisting}
 
 This routine is called by device or driver support.
 It must be called once for each interrupt source.
@@ -522,9 +522,9 @@ The \verb|scan_element| is then added to or deleted from the correct scan list.
 \subsubsection{scanIoRequest}
 
 \index{scanIoRequest}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 unsigned int scanIoRequest(IOSCANPVT pios)
-\end{verbatim}
+\end{lstlisting}
 
 This routine is called by device or driver support to request a specific I/O event scan.
 It may be called from interrupt level.
@@ -536,7 +536,7 @@ The appropriate callback task calls routine \verb|ioscanCallback|, which calls \
 \index{Periodic Scanning}
 Periodic scanning is built around the following definitions:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct periodic_scan_list {
     scan_list           scan_list;
     double              period;
@@ -549,7 +549,7 @@ typedef struct periodic_scan_list {
 static int nPeriodic;
 static periodic_scan_list **papPeriodic;
 static epicsThreadId *periodicTaskId;
-\end{verbatim}
+\end{lstlisting}
 
 The \verb|nPeriodic| variable holds the number of periodic scan rates configured.
 \verb|papPeriodic| points to an array of pointers to \verb|periodic_scan_lists|.
@@ -561,9 +561,9 @@ The following routines implement periodic scanning:
 \subsubsection{initPeriodic}
 
 \index{initPeriodic}
-\begin{verbatim}
-void initPeriodic(void)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+void initPeriodic(void);
+\end{lstlisting}
 
 This routine first determines how many periodic scan rates are to be created from the definition of the \verb|menuScan| menu.
 The array of pointers referenced by \verb|papPeriodic| is allocated.
@@ -573,9 +573,9 @@ It parses the choice string for that choice to obtain the scan period for the sc
 \subsubsection{periodicTask}
 
 \index{periodicTask}
-\begin{verbatim}
-periodicTask (struct scan_list *psl)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+periodicTask (struct scan_list *psl);
+\end{lstlisting}
 
 In outline this task runs an infinite loop, calling \verb|scanList| and then waiting until the start of the next scan interval, allowing for the time it took to scan the list.
 If a periodic scan list takes longer to process than its defined scan period, its next scan will be delayed by half a scan period, with a maximum of 1 second delay.
@@ -588,9 +588,9 @@ The total number of over-runs is counted by each scan thread and can be displaye
 \subsubsection{scanOnce}
 
 \index{scanOnce}
-\begin{verbatim}
-void scanOnce (dbCommon *precord)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+void scanOnce (dbCommon *precord);
+\end{lstlisting}
 
 A task \verb|onceTask| waits for requests to issue a \verb|dbProcess| request.
 The routine \verb|scanOnce| puts the address of the record to be processed in a ring buffer and wakes up \verb|onceTask|.
@@ -604,7 +604,7 @@ This is set by default to be 1000 entries long.
 The size can be changed by executing the following command in the startup script before \verb|iocInit|:
 
 \index{scanOnceSetQueueSize}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int scanOnceSetQueueSize(int size);
-\end{verbatim}
+\end{lstlisting}
 

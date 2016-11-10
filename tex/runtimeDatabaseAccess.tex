@@ -159,7 +159,7 @@ This file is the interface definition for the run time database access library, 
 
 An important structure defined in this header file is \verb|DBADDR|
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct dbAddr{
     struct dbCommon *precord;/* address of record*/
     void* pfield;/* address of field*/
@@ -171,7 +171,7 @@ typedef struct dbAddr{
     short special;/* special processing*/
     short dbr_field_type; /*optimal database request type*/
 }DBADDR;
-\end{verbatim}
+\end{lstlisting}
 \index{struct dbAddr}
 \index{dbAdd}
 \index{DBADDR}
@@ -387,23 +387,23 @@ A brief example should show how they are used.
 The following example defines a buffer to accept an array of up to ten float values.
 In addition it contains fields for options \verb|DBR_STATUS| and \verb|DBR_TIME|.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 struct buffer {
     DBRstatus
     DBRtime
     float  value[10];
 } buffer;
-\end{verbatim}
+\end{lstlisting}
 
 The associated \verb|dbGetField| call is:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long options,number_elements,status;
     ...
 options = DBR_STATUS | DBR_TIME;
 number_elements = 10;
 status = dbGetField(paddr,DBR_FLOAT,&buffer,&options,&number_elements);
-\end{verbatim}
+\end{lstlisting}
 
 Consult \verb|dbAccess.h| for a complete list of macros.
 
@@ -436,11 +436,11 @@ If the current alarm severity is less then or equal to this value the alarm is a
 \index{dbNameToAddr}
 Locate a process variable, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbNameToAddr(
     char  *pname, /*ptr to process variable name */
     struct dbAddr  *paddr);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbNameToAddr}
 The most important goal of database access can be stated simply:
@@ -492,7 +492,7 @@ Once located the \verb|dbAddr| structure allows the process variable to be acces
 
 Get values associated with a process variable, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetField(
     struct dbAddr *paddr,
     short dbrType,   /* DBR_xxx */
@@ -500,7 +500,7 @@ long dbGetField(
     long *options,   /* ptr to options */
     long *nRequest,  /* ptr to number of elements */
     void *pfl);      /* used by monitor routines */
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetField}
 This routine locks, calls \verb|dbGet|, and unlocks.
@@ -509,14 +509,14 @@ This routine locks, calls \verb|dbGet|, and unlocks.
 
 Get value from the field referenced by a database link, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetLink(
     struct db_link *plink, /* ptr to link field */
     short dbrType,         /* DBR_xxx */
     void *pbuffer,         /* ptr to returned data */
     long *options,         /* ptr to options */
     long *nRequest);       /* ptr to number of elements desired */
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetLink}
 \index{dbGetLink}
@@ -543,7 +543,7 @@ In addition it has code that optimizes the case of no options and scalar.
 
 Get values associated with a process variable, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGet(
     struct dbAddr *paddr,
     short dbrType,  /* DBR_xxx */
@@ -551,7 +551,7 @@ long dbGet(
     long *options,  /* ptr to options */
     long *nRequest, /* ptr to number of elements */
     void *pfl);     /* used by monitor routines */
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGet}
 This routine retrieves the data referenced by \verb|paddr| and converts it to the format specified by \verb|dbrType|.
@@ -589,13 +589,13 @@ The offset is for use by records which implement circular buffers, and provides 
 
 Change the value of a process variable, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbPutField(
     struct dbAddr *paddr,
     short dbrType,   /* DBR_xxx */
     void *pbuffer,  /* ptr to data */
     long nRequest); /* number of elements to write */
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbPutField}
 This routine is responsible for accepting data in one of the \verb|DBR_xxx| formats, converting it as necessary, and modifying the database.
@@ -634,13 +634,13 @@ If this is the \verb|PROC| field or if both of the following are \verb|TRUE|:
 
 Change the value referenced by a database link, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbPutLink(
     struct db_link  *plink, /* ptr to link field */
     short dbrType,          /* DBR_xxx */
     void *pbuffer,          /* ptr to data to write */
     long nRequest);         /* number of elements to write */
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbPutLink}
 \verb|dbPutLink| is actually a macro that calls \verb|dbPutLinkValue| and can reference its arguments more than once.
@@ -674,13 +674,13 @@ For database links it performs the following functions:
 
 Put a value to a database field, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbPut(
     struct dbAddr  *paddr,
     shortdbrType,/* DBR_xxx*/
     void*pbuffer,/*addr of data*/
     longnRequest);/*number of elements to write*/
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbPut}
 This routine is responsible for accepting data in one of the \verb|DBR_xxx| formats, converting it as necessary, and modifying 
@@ -728,7 +728,7 @@ The dbNotify.h header defines the following:
 \index{dbProcessNotify}
 \index{processNotifyStatus}
 \index{processNotify}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef enum {
     processRequest,
     putProcessRequest,
@@ -772,7 +772,7 @@ typedef struct processNotify {
 
 epicsShareFunc void dbProcessNotify(processNotify *pprocessNotify);
 epicsShareFunc void dbNotifyCancel(processNotify *pprocessNotify);
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{Client Semantics}
 
@@ -890,12 +890,12 @@ The output types issue a channel access \verb|ca_put_callback| request.
 \index{dbBufferSize}
 Determine the buffer size for a \verb|dbGetField| request, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbBufferSize(
     shortdbrType,/* DBR_xxx*/
     longoptions,/* options mask*/
     longnRequest);/* number of elements*/
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbBufferSize}
 This routine returns the number of bytes that will be returned to \verb|dbGetField| if the request type, options, and number of elements are specified as given to \verb|dbBufferSize|.
@@ -908,9 +908,9 @@ NOTE: This should become a Channel Access routine
 \index{dbValueSize}
 Determine the size a value field, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 dbValueSize(short dbrType); /* DBR_xxx*/
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbValueSize}
 This routine returns the number of bytes for each element of type \verb|dbrType|.
@@ -924,9 +924,9 @@ Get address of a record support entry table.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 struct rset *dbGetRset(DBADDR *paddr);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetRset}
 This routine returns the address of the record support entry table for the record referenced by the \verb|DBADDR|.
@@ -938,9 +938,9 @@ Is this field the VAL field of the record?
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbIsValueField(struct dbFldDes *pdbFldDes);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbIsValueField}
 This is the routine that makes the \verb|get_value| record support routine obsolete.
@@ -952,9 +952,9 @@ Get field index.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbGetFieldIndex(DBADDR *paddr);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetFieldIndex}
 Record support routines such as \verb|special| and \verb|cvt_dbaddr| need to know which field the \verb|DBADDR| references.
@@ -968,9 +968,9 @@ Get number of elements in a field.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
  long dbGetNelements(struct link *plink,long *nelements);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetNelements}
 This sets *\verb|nelements| to the number of elements in the field referenced by plink.
@@ -982,9 +982,9 @@ Is the link connected.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbIsLinkConnected(struct link *plink);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbIsLinkConnected}
 This routine returns (TRUE, FALSE) if the link (is, is not) connected.
@@ -1002,9 +1002,9 @@ Get field type of a link.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbGetLinkDBFtype(struct link *plink);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetLinkDBFtype}
 \subsubsection{dbGetControlLimits}
@@ -1014,9 +1014,9 @@ Get Control Limits for link.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetControlLimits(struct link *plink,double *low, double *high);
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{dbGetGraphicLimits}
 
@@ -1025,9 +1025,9 @@ Get Graphic Limits for link.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetGraphicLimits(struct link *plink,double *low, double *high);
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{dbGetAlarmLimits}
 
@@ -1036,11 +1036,11 @@ Get Alarm Limits for link.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetAlarmLimits(struct link *plink,
 
 double lolo,double *low, double *high,double hihi);
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{dbGetPrecision}
 
@@ -1049,9 +1049,9 @@ Get Precision for link.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetPrecision(struct link *plink,short *precision);
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{dbGetUnits}
 
@@ -1060,9 +1060,9 @@ Get Units for link.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetUnits(struct link *plink,char *units,int unitsSize);
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{dbGetSevr}
 
@@ -1071,9 +1071,9 @@ Get Severity for link.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetSevr(struct link *plink,short *sevr);
-\end{verbatim}
+\end{lstlisting}
 
 \subsubsection{dbGetTimeStamp}
 
@@ -1082,9 +1082,9 @@ Get Time Stamp for record containing link.
 
 Format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetTimeStamp(struct link *plink,TS_STAMP *pstamp);
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Attribute Routine}
 
@@ -1093,18 +1093,18 @@ long dbGetTimeStamp(struct link *plink,TS_STAMP *pstamp);
 \index{dbPutAttribute}
 Give a value to a record attribute.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbPutAttribute(char *recordTypename,
     char *name,char*value);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbPutAttribute}
 This sets the record attribute \verb|name| for record type \verb|recordTypename| to \verb|value|.
 For example the following would set the version for the ai record.
 
-\begin{verbatim}
-dbPutAttribute("ai","VERS","V800.6.95")
-\end{verbatim}
+\begin{lstlisting}[language=C]
+dbPutAttribute("ai","VERS","V800.6.95");
+\end{lstlisting}
 
 \subsection{Process Routines}
 
@@ -1116,14 +1116,14 @@ dbScanFwdLink
 
 Process record if it is passive, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbScanPassive(
     struct dbCommon  *pfrom,
     struct dbCommon  *pto);   /* addr of record*/
 long dbScanLink(
     struct dbCommon *pfrom, struct dbCommon *pto);
 void dbScanFwdLink(struct link *plink);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbScanPassive}
 \index{dbScanLink}
@@ -1140,9 +1140,9 @@ That is for DB\_LINKs it calls dbScanPassive and for CA\_LINKS it does a dbCaPut
 
 Request that a database record be processed, format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbProcess(struct dbCommom  *precord);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbProcess}
 Request that record be processed.
@@ -1170,12 +1170,12 @@ It is a responsibility of record support (and db common) to notify the channel a
 State changes can include changes in the value of a process variable and also changes in the alarm state of a process variable.
 The routine \verb|db_post_events| is called to inform the channel access server that a process variable state change event has occurred.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include <caeventmask.h>
 
 int db_post_events(void *precord, void *pfield,
 unsigned intselect);
-\end{verbatim}
+\end{lstlisting}
 
 \index{db\_post\_events}
 The first argument, ``precord", should be passed a pointer to the record which is posting the event(s).
@@ -1218,9 +1218,9 @@ All other routines are called by \verb|iocCore|.
 
 Lock a lock set:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long void dbScanLock(struct dbCommon *precord);
-\end{verbatim}
+\end{lstlisting}
 \index{dbScanLock}
 
 Lock the lock set to which the specified record belongs.
@@ -1229,9 +1229,9 @@ Lock the lock set to which the specified record belongs.
 
 Unlock a lock set:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long void dbScanUnlock(struct dbCommon *precord);
-\end{verbatim}
+\end{lstlisting}
 \index{dbScanUnlock}
 
 Lock the lock set to which the specified record belongs
@@ -1240,9 +1240,9 @@ Lock the lock set to which the specified record belongs
 
 Get lock set id:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbLockGetLockId(struct dbCommon *precord);
-\end{verbatim}
+\end{lstlisting}
 \index{dbLockGetLockId}
 
 Each lock set is assigned a unique ID.
@@ -1253,9 +1253,9 @@ This is most useful to determine if two records are in the same lock set.
 
 Determine lock sets for each record in database.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbLockInitRecords(dbBase *pdbbase);
-\end{verbatim}
+\end{lstlisting}
 \index{dbLockInitRecords}
 
 Called by \verb|iocInit|.
@@ -1264,10 +1264,10 @@ Called by \verb|iocInit|.
 
 Merge records into same lock set.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbLockSetMerge(struct dbCommon *pfirst,
     struct dbCommon *psecond);
-\end{verbatim}
+\end{lstlisting}
 \index{dbLockSetMerge}
 
 If specified records are not in same lock set the lock sets are merged.
@@ -1277,9 +1277,9 @@ Called by dbLockInitRecords and also when links are modified by \verb|dbPutField
 
 Recompute lock sets for given lock set
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbLockSetSplit(struct dbCommon *psource);
-\end{verbatim}
+\end{lstlisting}
 \index{dbLockSetSplit}
 
 This is called when \verb|dbPutField| modifies links.
@@ -1288,9 +1288,9 @@ This is called when \verb|dbPutField| modifies links.
 
 Global lock for modifying links.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbLockSetGblLock(void);
-\end{verbatim}
+\end{lstlisting}
 \index{dbLockSetGblLock}
 
 Only one task at a time can modify link fields.
@@ -1300,18 +1300,18 @@ This routine provides a global lock to prevent conflicts.
 
 Unlock the global lock.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbLockSetGblUnlock(void);
-\end{verbatim}
+\end{lstlisting}
 \index{dbLockSetGblUnlock}
 
 \subsection{dbLockSetRecordLock}
 
 If record is not already scan locked lock it.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbLockSetRecordLock(struct dbCommon *precord);
-\end{verbatim}
+\end{lstlisting}
 \index{dbLockSetRecordLock}
 
 \section{Channel Access Database Links}
@@ -1345,26 +1345,26 @@ Except for dbCaPutLinkCallback, these routines are normally only called by datab
 
 Called by \verb|iocInit| to initialize the \verb|dbCa| library
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbCaLinkInit(void);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaLinkInit}
 
 \subsubsection{dbCaAddLink}
 
 Add a new channel access link
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbCaAddLink(struct link *plink);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaAddLink}
 
 \subsubsection{dbCaAddLinkCallback}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbCaAddLinkCallback(struct link *plink,
     dbCaCallback connect,dbCaCallback monitor,void *userPvt);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaAddLinkCallback}
 
 \verb|connect| will be called whenever the link connects or disconnects.
@@ -1375,46 +1375,46 @@ void dbCaAddLinkCallback(struct link *plink,
 
 Remove channel access link.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbCaRemoveLink(struct link *plink);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaRemoveLink}
 
 \subsubsection{dbCaGetLink}
 
 Get link value
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetLink(struct link *plink,short dbrType,
     void *pbuffer,unsigned short *psevr,long *nRequest);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetLink}
 
 \subsubsection{dbCaPutLink}
 
 Put link value
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaPutLink(struct link *plink,short dbrType,
     void *buffering nRequest);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaPutLink}
 
 \subsubsection{dbCaPutLinkCallback}
 
 This is meant for use by device or record support that wants a put to complete before completing record processing.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaPutLinkCallback(struct link *plink,short dbrType,
 const void *pbuffer,long nRequest,dbCaPutCallback callback);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaPutLinkCallback}
 \index{devAoSoftCallback.c}
 
 \textless{}base\textgreater{}/src/std/dev/devAoSoftCallback.c provides an example of how to use this function.
 It contains:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static long write_ao(aoRecord *pao)
 {
     struct link *plink = &pao->out;
@@ -1434,7 +1434,7 @@ static long write_ao(aoRecord *pao)
     pao->pact = TRUE;
     return(0);
 }
-\end{verbatim}
+\end{lstlisting}
 
 What happens is the following:
 
@@ -1472,9 +1472,9 @@ They must be called with dbScanLock held, i.e. normally they are called by the r
 
 Is Channel Connected
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbCaIsLinkConnected(struct link *plink)
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaIsLinkConnected}
 
 This routine returns (TRUE, FALSE) if the link (is, is not) connected.
@@ -1483,9 +1483,9 @@ This routine returns (TRUE, FALSE) if the link (is, is not) connected.
 
 Get Number of Elements
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetNelements(struct link *plink,long *nelements);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetNelements}
 
 This call, which returns an error if the link is not connected, sets the native number of elements.
@@ -1494,9 +1494,9 @@ This call, which returns an error if the link is not connected, sets the native 
 
 Get Alarm Severity
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetSevr(struct link *plink,short *severity);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetSevr}
 
 This call, which returns an error if the link is not connected, sets the alarm severity.
@@ -1505,9 +1505,9 @@ This call, which returns an error if the link is not connected, sets the alarm s
 
 Get Time Stamp
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetTimeStamp(struct link *plink,TS_STAMP *pstamp));
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetTimeStamp}
 
 This call, which returns an error if the link is not connected, sets pstamp to the time obtained by the last CA monitor.
@@ -1516,9 +1516,9 @@ This call, which returns an error if the link is not connected, sets pstamp to t
 
 Get link type
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbCaGetLinkDBFtype(struct link *plink);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetLinkDBFtype}
 
 This call, which returns an error if the link is not connected, returns the field type.
@@ -1527,10 +1527,10 @@ This call, which returns an error if the link is not connected, returns the fiel
 
 Get Attributes
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetAttributes(struct link *plink,
     void (*callback)(void *usrPvt),void *usrPvt);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetAttributes}
 
 When ever dbCa receives a connection it issues a CA get request to obtain the control, graphic, and alarm limits and to obtain the precision and units.
@@ -1540,9 +1540,9 @@ By calling dbCaGetAttributes the caller can be notified when this get completes.
 
 Get Control Limits
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetControlLimits(struct link *plink,double *low, double *high);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetControlLimits}
 
 This call returns an error if the link is not connected or if the CA get request for limits, etc. has not completed.
@@ -1552,9 +1552,9 @@ If it returns success it has set the control limits.
 
 Get graphic Limits
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetGraphicLimits(struct link *plink,double *low, double *high);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetGraphicLimits}
 
 This call returns an error if the link is not connected or if the CA get request for limits, etc. has not completed.
@@ -1564,10 +1564,10 @@ If it returns success it has set the graphic limits.
 
 Get Alarm Limits
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetAlarmLimits(struct link *plink,
     double *lolo, double *low, double *high, double *hihi);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetAlarmLimits}
 
 This call returns an error if the link is not connected or if the CA get request for limits, etc. has not completed.
@@ -1577,9 +1577,9 @@ If it returns success it has set the alarm limits.
 
 Get Precision
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetPrecision(struct link *plink,short *precision);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetPrecision}
 
 This call returns an error if the link is not connected or if the CA get request for limits, etc. has not completed.
@@ -1589,9 +1589,9 @@ If it returns success it has set the precision.
 
 Get Units
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCaGetUnits(struct link *plink,char *units,int unitsSize);
-\end{verbatim}
+\end{lstlisting}
 \index{dbCaGetUnits}
 
 This call returns an error if the link is not connected or if the CA get request for limits, etc. has not completed.
@@ -1608,7 +1608,7 @@ Server layers are thus encouraged to register a dbServer structure with the IOC 
 
 The dbServer structure is defined in dbServer.h as follows:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct dbServer {
     ELLNODE node;
     const char *name;
@@ -1623,14 +1623,14 @@ typedef struct dbServer {
     /* Must return 0 (OK), or -1 (ERROR) from unknown threads */
     int (* client) (char *pBuf, size_t bufSize);
 } dbServer;
-\end{verbatim}
+\end{lstlisting}
 \index{dbServer}
 
 A server layer should instantiate one of these and pass a pointer to it to dbRegisterServer:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbRegisterServer(dbServer *psrv);
-\end{verbatim}
+\end{lstlisting}
 \index{dbRegisterServer}
 
 The individual function pointers in the structure are optional, use NULL if a specific routine has not been implemented for this server.
@@ -1653,9 +1653,9 @@ The dbServer.h header makes the following routines available to the IOC code.
 
 \subsubsection{dbsr - Server Report}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbsr(unsigned level);
-\end{verbatim}
+\end{lstlisting}
 \index{dbsr}
 
 This routine scans through the list of registered servers, printing the server's name and then calling its report function if one exists.
@@ -1663,9 +1663,9 @@ This is an iocsh command that is intended to replace \verb|casr|, and is only ca
 
 \subsubsection{dbServerClient - Identifying a client thread}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbServerClient(char *pBuf, size_t bufSize);
-\end{verbatim}
+\end{lstlisting}
 \index{dbServerClient}
 
 When the IOC processes a record that has its TPRO field set, this routine is called to obtain a server context for the printed record name.

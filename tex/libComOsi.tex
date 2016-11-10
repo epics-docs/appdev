@@ -95,15 +95,15 @@ When code is compiled, the search order for locating header files in \verb|base/
 \index{epicsAssert}
 This is an enhanced version of ANSI C's \verb|assert| facility. To use this, replace:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include <assert.h>
-\end{verbatim}
+\end{lstlisting}
 
 with
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include "epicsAssert.h"
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Runtime Assertion Checks}
 
@@ -122,9 +122,9 @@ The C or C++ compiler can be used to evaluate and check a static expression at c
 Static assertions may only be placed where a variable declaration is valid, and can only test certain kinds of constant expressions.
 A static assertion looks like this:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 STATIC_ASSERT(expression);
-\end{verbatim}
+\end{lstlisting}
 
 If the expression evaluates as false, the compiler will be presented with an illegal variable declaration using the name \verb|static_assert_failed_at_line_<n>| and so should halt compilation at that point.
 
@@ -144,14 +144,14 @@ In operating systems environments which allow C code to run at interrupt level t
 All C++ functions are implemented in the namespace \verb|atomics| which is nested inside of namespace \verb|epics|.
 
 \index{epicsAtomic.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include <epicsAtomic.h>
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{C Callable Interface}
 
 \index{epicsAtomic functions}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void epicsAtomicReadMemoryBarrier ();
 void epicsAtomicWriteMemoryBarrier ();
 
@@ -183,7 +183,7 @@ EpicsAtomicPtrT epicsAtomicCmpAndSwapPtrT (
                                             EpicsAtomicPtrT newVal );
 
 int epicsAtomicTestAndSet ( int * pTarget );
-\end{verbatim}
+\end{lstlisting}
 
 \index{epics::atomics functions}
 \begin{center}
@@ -227,13 +227,13 @@ It defines the following preprocessor macros, the values of which are integers:
 
 The latter two macros are defined to be one or other of the first two, and may be compared with them to determine conditional compilation or execution of code that performs byte or word swapping as necessary.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #if (EPICS_BYTE_ORDER == EPICS_ENDIAN_BIG)
     /* ... */
 #else /* EPICS_ENDIAN_LITTLE */
     /* ... */
 #endif /* EPICS_BYTE_ORDER */
-\end{verbatim}
+\end{lstlisting}
 
 \section{epicsEvent}
 \index{epicsEvent}
@@ -247,7 +247,7 @@ If multiple threads are waiting on the same event, only one of them will be woke
 \index{class epicsEvent}
 \index{enum epicsEventStatus}
 \index{enum epicsEventInitialState}
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 typedef enum {
     epicsEventOK = 0,
     epicsEventWaitTimeout,
@@ -279,7 +279,7 @@ public:
 private:
     ...
 };
-\end{verbatim}
+\end{lstlisting}
 
 \begin{center}
 \begin{longtable}{p{1.25in}p{5.0in}}
@@ -312,26 +312,26 @@ For example:
 \begin{itemize}
 \item When creating the consumer thread also create an epicsEvent.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 epicsEvent *pevent = new epicsEvent;
-\end{verbatim}
+\end{lstlisting}
 
 \item The consumer thread has code containing:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 while(1) {
     pevent->wait();
     while(/* more work */) {
         /* process work */
     }
 }
-\end{verbatim}
+\end{lstlisting}
 
 \item Producers create requests and issue the statement:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 pevent->trigger();
-\end{verbatim}
+\end{lstlisting}
 
 \end{itemize}
 
@@ -349,7 +349,7 @@ pevent->trigger();
 \index{epicsEventWaitWithTimeout}
 \index{epicsEventTryWait}
 \index{epicsEventShow}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 epicsEventId epicsEventCreate(epicsEventInitialState initialState);
 epicsEventId epicsEventMustCreate(epicsEventInitialState initialState);
 void epicsEventDestroy(epicsEventId id);
@@ -364,7 +364,7 @@ epicsEventStatus epicsEventWaitWithTimeout(epicsEventId id, double timeOut);
 epicsEventStatus epicsEventTryWait(epicsEventId id);
 
 void epicsEventShow(epicsEventId id, unsigned int level);
-\end{verbatim}
+\end{lstlisting}
 
 The C routines shown above generally correspond to one of the C++ methods.
 The \verb|epicsEventSignal| macro provides backwards compatibility.
@@ -378,11 +378,11 @@ The routines \verb|epicsEventMustCreate|, \verb|epicsEventMustTrigger| and \verb
 \index{epicsFindSymbol}
 \index{epicsLoadLibrary}
 \index{epicsLoadError}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void * epicsFindSymbol(const char *name);
 void * epicsLoadLibrary(const char *name);
 const char *epicsLoadError(void);
-\end{verbatim}
+\end{lstlisting}
 
 \begin{center}
 \begin{longtable}{p{1.35in}p{2.5in}}
@@ -441,7 +441,7 @@ The \verb|epicsGeneralTime.h| header contains the following:
 \index{epicsGeneralTime.h}
 \index{generalTimeCurrentTpName}
 \index{generalTimeEventTpName}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void generalTime_Init(void);
 int installLastResortEventProvider(void);
 void generalTimeResetErrorCounts(void);
@@ -456,7 +456,7 @@ const char * generalTimeEventProviderName(void);
 #define generalTimeEventTpName generalTimeEventProviderName
 
 long generalTimeReport(int interest);
-\end{verbatim}
+\end{lstlisting}
 
 \begin{center}
 \begin{longtable}{p{2.0in}p{4.25in}}
@@ -511,7 +511,7 @@ Provide information about the installed providers and their current best times.
 The \verb|generalTimeSup.h| header for time providers contains the following:
 
 \index{generalTimeSup.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef int (*TIMECURRENTFUN)(epicsTimeStamp *pDest);
 typedef int (*TIMEEVENTFUN)(epicsTimeStamp *pDest, int event);
 
@@ -531,7 +531,7 @@ int generalTimeAddIntEventProvider(const char *name,
 
 int generalTimeGetExceptPriority(epicsTimeStamp *pDest, int *pPrio,
         int ignorePrio);
-\end{verbatim}
+\end{lstlisting}
 
 \index{generalTimeRegisterCurrentProvider}
 \index{generalTimeRegisterEventProvider}
@@ -586,12 +586,12 @@ The generalTime framework also now provides the implementations of the following
 \index{epicsTimeGetEvent}
 \index{epicsTimeGetCurrentInt}
 \index{epicsTimeGetEventInt}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int epicsTimeGetCurrent(epicsTimeStamp *pDest);
 int epicsTimeGetEvent(epicsTimeStamp *pDest, int eventNumber);
 int epicsTimeGetCurrentInt(epicsTimeStamp *pDest);
 int epicsTimeGetEventInt(epicsTimeStamp *pDest, int eventNumber);
-\end{verbatim}
+\end{lstlisting}
 
 If \verb|epicsTimeGetEvent()| is called with an event number of 0 (\verb|epicsTimeEventCurrentTime|) it will return the time from the best available current time provider.
 Thus providers do not need to provide event times if they do not implement an event system.
@@ -641,14 +641,14 @@ record(stringin, "$(IOC):GTIM_BESTTEP") {
 \index{epicsInterrupt.h}
 \subsection{C Interface}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int epicsInterruptLock();
 
 void epicsInterruptUnlock(int key);
 
 int epicsInterruptIsInterruptContext();
 void epicsInterruptContextMessage(const char *message);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsInterruptLock}
 \index{epicsInterruptUnlock}
@@ -704,7 +704,7 @@ epicsMath.h includes math.h and also ensures that \index{isnan}isnan and \index{
 EpicsMessageQueue provides methods for sending messages between threads on a first in, first out basis.
 It is designed so that a single message queue can be used with multiple writer and reader threads.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 class epicsMessageQueue {
 public:
     epicsMessageQueue(unsigned int capacity, unsigned int maximumMessageSize);
@@ -727,20 +727,20 @@ private: // Prevent compiler-generated member functions
 private: // Data
     ...
 };
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsMessageQueue}An epicsMessageQueue cannot be assigned to, copy-constructed, or constructed without giving the \emph{capacity} and 
 maximumMessageSize arguments.
 The C++ compiler will object to some of the statements below:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 epicsMessageQueue mq0();   // Error: default constructor is private
 epicsMessageQueue mq1(10, 20); // OK
 epicsMessageQueue mq2(t1); // Error: copy constructor is private
 epicsMessageQueue *pmq;    // OK, pointer
 *pmq = mq1;               // Error: assignment operator is private
 pmq = &mq1;               // OK, pointer assignment and address-of
-\end{verbatim}
+\end{lstlisting}
 
 \begin{center}
 \begin{longtable}{p{1.35in}p{5.0in}}
@@ -787,7 +787,7 @@ pending() & Returns the number of messages presently in the queue.
 \index{epicsMessageQueueReceiveWithTimeout}
 \index{epicsMessageQueueShow}
 \index{epicsMessageQueuePending}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct epicsMessageQueueOSD *epicsMessageQueueId;
 
 epicsMessageQueueId epicsMessageQueueCreate(unsigned int capacity,
@@ -807,7 +807,7 @@ int epicsMessageQueueReceiveWithTimeout(epicsMessageQueueId id,
     void *message, unsigned int size, double timeout);
 void epicsMessageQueueShow(epicsMessageQueueId id);
 int epicsMessageQueuePending(epicsMessageQueueId id);
-\end{verbatim}
+\end{lstlisting}
 
 Each C function corresponds to one of the C++ methods.
 
@@ -825,7 +825,7 @@ Each C function corresponds to one of the C++ methods.
 \index{epicsMutexLockStatus}
 \index{newEpicsMutex}
 \index{epicsMutex}
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 typedef enum {
     epicsMutexLockOK, epicsMutexLockTimeout, epicsMutexLockError
 } epicsMutexLockStatus;
@@ -845,7 +845,7 @@ public:
     class invalidSemaphore {}; /* exception */
 private:
 };
-\end{verbatim}
+\end{lstlisting}
 
 \begin{center}
 \begin{longtable}{p{1.25in}p{4.5in}}
@@ -889,18 +889,18 @@ The \verb|epicsMutex::show()| routine can display that source location.
 
 The typical use of a mutual exclusion semaphore is:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
     epicsMutex *plock = newEpicsMutex;
     ...
     ...
     plock->lock();
     /* process resource */
     plock->unlock();
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{C Interface}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct epicsMutexOSD* epicsMutexId;
 
 epicsMutexId epicsMutexCreate(void);
@@ -913,7 +913,7 @@ void epicsMutexMustLock(epicsMutexId id);
 epicsMutexLockStatus epicsMutexTryLock(epicsMutexId id);
 void epicsMutexShow(epicsMutexId id,unsigned  int level);
 void epicsMutexShowAll(int onlyLocked,unsigned  int level);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsMutexId}
 \index{epicsMutexCreate}
@@ -950,7 +950,7 @@ A posix version is implemented via pthreads.
 
 \subsection{C Interface}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct epicsSpin *epicsSpinId;
 
 epicsSpinId epicsSpinCreate();
@@ -959,7 +959,7 @@ void epicsSpinDestroy(epicsSpinId);
 void epicsSpinLock(epicsSpinId);
 int epicsSpinTryLock(epicsSpinId);
 void epicsSpinUnlock(epicsSpinId);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsSpinId}
 \index{epicsSpinCreate}
@@ -1007,7 +1007,7 @@ The units pointer argument may be NULL, but if not it will be left pointing to t
 \index{epicsParseUInt32}
 \index{epicsParseInt64}
 \index{epicsParseUInt64}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int epicsParseLong(const char *str, long *to, int base, char **units);
 int epicsParseULong(const char *str, unsigned long *to, int base,
     char **units);
@@ -1026,7 +1026,7 @@ int epicsParseUInt32(const char *str, epicsUInt32 *to, int base, char **units);
 
 int epicsParseInt64(const char *str, epicsInt64 *to, int base, char **units);
 int epicsParseUInt64(const char *str, epicsUInt64 *to, int base, char **units);
-\end{verbatim}
+\end{lstlisting}
 
 The return value from these routines is a status code, zero meaning OK.
 
@@ -1034,7 +1034,7 @@ The return value from these routines is a status code, zero meaning OK.
 
 These routines convert a string into a floating-point type.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 double epicsStrtod(const char *str, char **endp);
 
 int epicsParseDouble(const char *str, double *to, char **units);
@@ -1042,7 +1042,7 @@ int epicsParseFloat(const char *str, float *to, char **units);
 
 #define epicsParseFloat32(str, to, units) epicsParseFloat(str, to, units)
 #define epicsParseFloat64(str, to, units) epicsParseDouble(str, to, units)
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsStrtod}
 \verb|epicsStrtod()| has the same semantics as the C99 function \verb|strtod()| and is provided because some architectures do not fully conform to the standard. It is implemented as a simple macro on those architectures that do conform.
@@ -1059,14 +1059,14 @@ The return value from these routines is a status code, zero meaning OK.
 The following routines are implemented as macros that call routines described above.
 They return 1 for a successful conversion, 0 on failure, and can be used to replace equivalent calls to \verb|sscanf()|.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #define epicsScanLong(str, to, base) !epicsParseLong(str, to, base, NULL)
 #define epicsScanULong(str, to, base) !epicsParseULong(str, to, base, NULL)
 #define epicsScanLLong(str, to, base) !epicsParseLLong(str, to, base, NULL)
 #define epicsScanULLong(str, to, base) !epicsParseULLong(str, to, base, NULL)
 #define epicsScanFloat(str, to) !epicsParseFloat(str, to, NULL)
 #define epicsScanDouble(str, to) !epicsParseDouble(str, to, NULL)
-\end{verbatim}
+\end{lstlisting}
 
 
 \index{epicsScanFloat}
@@ -1079,7 +1079,7 @@ They are provided because some architectures have implementations of scanf which
 \index{epicsStdio.h}
 The \verb|epicsStdio.h| first includes the operating systems's \verb|stdio.h| header, then provides definitions for the following functions:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int epicsSnprintf(char *str, size_t size,
     const char *format, ...);
 int epicsVsnprintf(char *str, size_t size,
@@ -1110,7 +1110,7 @@ void epicsSetThreadStderr(FILE *);
 int epicsStdoutPrintf(const char *pformat, ...);
 int epicsStdoutPuts(const char *str);
 int epicsStdoutPutchar(int c);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsSnprintf}
 \index{epicsVsnprintf}
@@ -1166,10 +1166,10 @@ In order for the redirection to work, all modules involved in I/O must include \
 \index{epicsTempFile.h}
 \verb|epicsTempFile.h| provides definitions for the following functions:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void epicsTempName(char *pbuf, size_t buflen);
 FILE * epicsTempFile(void);
-\end{verbatim}
+\end{lstlisting}
 \index{epicsTempName}
 \index{epicsTempFile}
 
@@ -1186,7 +1186,7 @@ The \verb|epicsTempName| function will probably be deprecated in a future releas
 \index{epicsThread.h}
 \subsection{C Interface}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef void (*EPICSTHREADFUNC)(void *parm);
 
 #define epicsThreadPriorityMax          99
@@ -1265,7 +1265,7 @@ epicsThreadPrivateId epicsThreadPrivateCreate(void);
 void epicsThreadPrivateDelete(epicsThreadPrivateId id);
 void epicsThreadPrivateSet(epicsThreadPrivateId,void *);
 void * epicsThreadPrivateGet(epicsThreadPrivateId);
-\end{verbatim}
+\end{lstlisting}
 
 \index{EPICSTHREADFUNC}
 \index{epicsThreadPriorityMax}
@@ -1331,7 +1331,7 @@ Get a stack size value that can be given to epicsThreadCreate.
 The size argument should be one of the values epicsThreadStackSmall, epicsThreadStackMedium or epicsThreadStackBig.\\
 epicsThreadOnce &
 This is used as follows:
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void myInitFunc(void * arg) {
     ...
 }
@@ -1340,7 +1340,7 @@ epicsThreadOnceId onceFlag =
 ...
 epicsThreadOnce(&onceFlag, myInitFunc,
     (void *)myParm);
-\end{verbatim}
+\end{lstlisting}
 For each unique epicsThreadOnceId, epicsThreadOnce guarantees that
 1) myInitFunc will only be called only once.
 2) myInitFunc will have returned before any other epicsThreadOnce call returns.
@@ -1478,7 +1478,7 @@ Thus code that looks after other threads MUST be aware of threads terminating.
 
 \subsection{C++ Interface}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 class epicsThreadRunable {
 public:
     virtual void run() = 0;
@@ -1526,7 +1526,7 @@ public:
 private:
     ...
 };
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsThreadRunable}
 \index{epicsThread}
@@ -1540,7 +1540,7 @@ Calling the \verb|start| method allows the \verb|run| method of the \verb|epicsT
 Code using the C++ API must provide a class that derives from \verb|epicsThreadRunable|.
 For example:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 class myThread: public epicsThreadRunable {
 public:
     myThread(int arg,const char *name);
@@ -1561,7 +1561,7 @@ void myThread::run()
 {
     // ...
 }
-\end{verbatim}
+\end{lstlisting}
 
 \section{epicsTime}
 
@@ -1571,7 +1571,7 @@ void myThread::run()
 \index{epicsTime.h}
 \subsection{Time Related Structures}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* epics time stamp for C interface*/
 typedef struct epicsTimeStamp {
     epicsUInt32    secPastEpoch;   /* seconds since 0000 Jan 1, 1990 */
@@ -1605,7 +1605,7 @@ struct gm_tm_nano_sec {
 struct time_t_wrapper {
     time_t ts;
 };
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsTimeStamp}
 \index{secPastEpoch}
@@ -1671,7 +1671,7 @@ standard C time support the epics implementation should be valid until 2106.
 
 \subsection{C++ Interface}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 class epicsTime;
 
 class epicsTimeEvent {
@@ -1760,14 +1760,14 @@ public:
 private:
     ...
 };
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsTimeEvent}
 \index{epicsTime}
 \subsection{class epicsTimeEvent}
 
 \index{epicsTimeEvent}
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 class epicsShareClass epicsTimeEvent
 {
 public:
@@ -1776,7 +1776,7 @@ public:
 private:
     int eventNumber;
 };
-\end{verbatim}
+\end{lstlisting}
 \begin{center}
 \begin{longtable}{p{1.79167in}p{4.94833in}}
 \textbf{Method} & \textbf{Meaning}\\
@@ -1943,7 +1943,7 @@ Shows the date/time.
 
 \subsection{C Interface}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* All epicsTime routines return (-1,0) for (failure,success) */
 #define epicsTimeOK 0
 #define epicsTimeERROR (-1)
@@ -2009,7 +2009,7 @@ void epicsTimeShow (const epicsTimeStamp *, unsigned interestLevel);
 int epicsTime_localtime ( const time_t *clock, struct tm *result );
 int epicsTime_gmtime ( const time_t *clock, struct tm *result );
 
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsTime}
 The C interface provides most of the features as the C++ interface.
@@ -2024,9 +2024,9 @@ Note that the \verb|epicsTimeGetCurrent()| and \verb|epicsTimeGetEvent()| routin
 \verb|osiPoolStatus.h| contains the following description:
 
 \index{osiPoolStatus.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int osiSufficentSpaceInPool(void);
-\end{verbatim}
+\end{lstlisting}
 
 \index{osiSufficentSpaceInPool}
 \begin{center}
@@ -2051,7 +2051,7 @@ The default version always returns true.
 \verb|osiProcess.h| contains the following:
 
 \index{osiProcess.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef enum osiGetUserNameReturn {
     osiGetUserNameFail,
     osiGetUserNameSuccess
@@ -2073,7 +2073,7 @@ typedef enum osiSpawnDetachedProcessReturn {
 osiSpawnDetachedProcessReturn osiSpawnDetachedProcess(
     const char *pProcessName, const char *pBaseExecutableName);
 
-\end{verbatim}
+\end{lstlisting}
 
 Not otherwise documented.
 
@@ -2083,7 +2083,7 @@ Not otherwise documented.
 \verb|epicsSignal.h| contains the following commented declarations:
 
 \index{epicsSignal.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /*
  * Required to avoid problems with soft IOCs getting SIGHUPs
  * when a Channel Access client disconnects:
@@ -2103,7 +2103,7 @@ void epicsSignalInstallSigPipeIgnore ( void );
  */
 void epicsSignalInstallSigAlarmIgnore ( void );
 void epicsSignalRaiseSigAlarm ( struct epicsThreadOSD * );
-\end{verbatim}
+\end{lstlisting}
 
 Not otherwise documented.
 
@@ -2137,7 +2137,7 @@ The actual implementations may use macros.
 \index{nat\_write32}
 \index{be\_write32}
 \index{le\_write32}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 epicsUInt8      ioread8 (void* addr);
 epicsUInt16 nat_ioread16(void* addr);
 epicsUInt16  be_ioread16(void* addr);
@@ -2153,7 +2153,7 @@ void  le_iowrite16(void* addr, epicsUInt16 val);
 void nat_iowrite32(void* addr, epicsUInt32 val);
 void  be_iowrite32(void* addr, epicsUInt32 val);
 void  le_iowrite32(void* addr, epicsUInt32 val);
-\end{verbatim}
+\end{lstlisting}
 
 The 16 and 32-bit calls have three variants: \verb|nat_|, \verb|be_|, and \verb|le_|
 which specify the byte ordering of the MMIO register being access as having:
@@ -2190,36 +2190,36 @@ multiple device/drivers trying to use the same VME addresses will be detected.
 
 \subsubsection{Read Probe}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devReadProbe(
     unsigned wordSize,
     volatile const void *ptr,
     void *pValueRead);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devReadProbe}Performs a bus-error-safe atomic read operation width \verb|wordSize| bytes from the \verb|ptr| location, placing the value read (if 
 successful) at \verb|pValueRead|. The routine returns a failure status (non-zero) if a bus error occurred during the read cycle.
 
 \subsubsection{Write Probe}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devWriteProbe(
     unsigned wordSize,
     volatile void *ptr,
     const void *pValueWritten);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devWriteProbe}Performs a bus-error-safe atomic write operation width \verb|wordSize| which copies the value from \verb|pValueWritten| to the 
 \verb|ptr| location. The routine returns a failure status (non-zero) if a bus error occurred during the write cycle.
 
 \subsubsection{No Response Probe}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long devNoResponseProbe(
     epicsAddressType addrType,
     size_t base,
     size_t size);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devNoResponseProbe}This routine performs a series of read probes for all word sizes from char to long at every naturally aligned location in the 
 range [\verb|base|, \verb|base+size|) for the given bus address type. It returns an error if any location responds or if any such 
@@ -2229,7 +2229,7 @@ location cannot be mapped.
 
 \subsubsection{Definitions of Address Types}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef enum {
     atVMEA16, atVMEA24, atVMEA32,
     atISA,
@@ -2241,20 +2241,20 @@ char  *epicsAddressTypeName[] = {
     "VME A16", "VME A24", "VME A32",
     "ISA", "VME CSR"
 };
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsAddressType}
 \index{epicsAddressTypeName}
 \subsubsection{Register Address}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devRegisterAddress(
     const char *pOwnerName,
     epicsAddressType addrType,
     size_t logicalBaseAddress,
     size_t size, /* bytes */
     volatile void **pLocalAddress);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devRegisterAddress}This routine is called to register a VME address. The routine keeps a list of all VME address ranges requested and returns 
 an error message if an attempt is made to register any addresses that overlap a range that is already being used. 
@@ -2262,33 +2262,33 @@ an error message if an attempt is made to register any addresses that overlap a 
 
 \subsubsection{Print Address Map}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devAddressMap(void)
-\end{verbatim}
+\end{lstlisting}
 
 \index{devAddressMap}This routine displays the table of registered VME address ranges, including the owner of each registered address.
 
 \subsubsection{Unregister Address}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devUnregisterAddress(
     epicsAddressType addrType,
     size_t logicalBaseAddress,
     const char *pOwnerName);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devUnregisterAddress}This routine releases address ranges previously registered by a call to \verb|devRegisterAddress| or \verb|devAllocAddress|.
 
 \subsubsection{Allocate Address}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devAllocAddress(
     const char *pOwnerName,
     epicsAddressType addrType,
     size_t size,
     unsigned alignment, /*number of low zero bits needed in addr*/
     volatile void **pLocalAddress);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devAllocAddress}This routine is called to request the library to allocate an address block of a particular address type. This is useful for 
 devices that appear in more than one address space and can program the base address of one window using registers found 
@@ -2298,22 +2298,22 @@ in another window.
 
 \subsubsection{Connect}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devConnectInterruptVME(
     unsigned vectorNumber,
     void (*pFunction)(void *),
     void  *parameter);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devConnectInterruptVME}Connect ISR \verb|pFunction| up to the VME interrupt \verb|vectorNumber|.
 
 \subsubsection{Disconnect}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devDisconnectInterruptVME(
     unsigned vectorNumber,
     void (*pFunction)(void *));
-\end{verbatim}
+\end{lstlisting}
 
 \index{devDisconnectInterruptVME}Disconnects an ISR from its VME interrupt vector. The parameter \verb|pFunction| should be set to the C function pointer 
 that was connected. It is used as a key to prevent a driver from inadvertently removing an interrupt handler that it didn't 
@@ -2321,28 +2321,28 @@ install.
 
 \subsubsection{Check If Used}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int devInterruptInUseVME(
     unsigned vectorNumber);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devInterruptInUseVME}Determines if a VME interrupt vector is in use, returning a boolean value.
 
 \subsubsection{Enable}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long devEnableInterruptLevelVME(
     unsigned level);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devEnableInterruptLevelVME}Enable the given VME interrupt level onto the CPU.
 
 \subsubsection{Disable}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long devDisableInterruptLevelVME(
     unsigned level);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devDisableInterruptLevelVME}Disable VME interrupt level. This routine should generally never be used, since it is impossible for a driver to know 
 whether any other active drivers are still making use of a particular interrupt level.
@@ -2351,39 +2351,39 @@ whether any other active drivers are still making use of a particular interrupt 
 
 \subsubsection{Convert Digital Value to a Normalized Double Value}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #define devCreateMask(NBITS)((1<<(NBITS))-1)
 #define devDigToNml(DIGITAL,NBITS) \
     (((double)(DIGITAL))/devCreateMask(NBITS))
-\end{verbatim}
+\end{lstlisting}
 
 \index{devCreateMask}\subsubsection{Convert Normalized Double Value to a Digital Value}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #define devNmlToDig(NORMAL,NBITS) \
     (((long)(NORMAL)) * devCreateMask(NBITS))
-\end{verbatim}
+\end{lstlisting}
 
 \index{devNmlToDig}\subsection{Deprecated Interrupt Routines}
 
 \subsubsection{Definitions of Interrupt Types (deprecated)}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef enum {intCPU, intVME, intVXI} epicsInterruptType;
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsInterruptType}The routines that use this typedef have all been deprecated, and currently only exist for backwards compatibility purposes. 
 The typedef will be removed in a future release, along with those routines.
 
 \subsubsection{Connect (deprecated)}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devConnectInterrupt(
     epicsInterruptType  intType,
     unsigned  vectorNumber,
     void  (*pFunction)(),
     void  *parameter);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devConnectInterrupt}This routine has been deprecated, and currently only exists for backwards compatibility purposes. Uses of this routine 
 should be converted to call \verb|devConnectInterruptVME| or related routines instead. This routine will be removed in a 
@@ -2391,11 +2391,11 @@ future release.
 
 \subsubsection{Disconnect (deprecated)}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devDisconnectInterrupt(
     epicsInterruptType intType,
     unsigned  vectorNumber);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devDisconnectInterrupt}This routine has been deprecated, and currently only exists for backwards compatibility purposes. Uses of this routine 
 should be converted to call \verb|devDisconnectInterruptVME| or related routines instead. This routine will be removed 
@@ -2403,11 +2403,11 @@ in a future release.
 
 \subsubsection{Enable Level (deprecated)}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devEnableInterruptLevel(
     epicsInterruptType  intType,
     unsigned  level);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devEnableInterruptLevel}This routine has been deprecated, and currently only exists for backwards compatibility purposes. Uses of this routine 
 should be converted to call \verb|devEnableInterruptLevelVME| or related routines instead. This routine will be removed 
@@ -2415,11 +2415,11 @@ in a future release.
 
 \subsubsection{Disable Level (deprecated)}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long  devDisableInterruptLevel(
     epicsInterruptType  intType,
     unsigned  level);
-\end{verbatim}
+\end{lstlisting}
 
 \index{devDisableInterruptLevel}This routine has been deprecated, and currently only exists for backwards compatibility purposes. Uses of this routine 
 should be converted to call \verb|devDisableInterruptLevelVME| or related routines instead. This routine will be 
@@ -2430,9 +2430,9 @@ removed in a future release.
 The routines described in this section are included in a application by the Makfile command:
 
 \index{vxComLibrary}
-\begin{verbatim}
-    <appl>_OBJS_vxWorks += $(EPICS_BASE_BIN)/vxComLibrary
-\end{verbatim}
+\begin{lstlisting}[language=make]
+<appl>_OBJS_vxWorks += $(EPICS_BASE_BIN)/vxComLibrary
+\end{lstlisting}
 
 \subsection{veclist}
 

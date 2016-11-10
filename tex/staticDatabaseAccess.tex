@@ -36,9 +36,9 @@ They are used by the static database access library to keep state information fo
 Multiple memory resident databases can be accessed simultaneously.
 The user must provide definitions in the form:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 DBBASE *pdbbase;
-\end{verbatim}
+\end{lstlisting}
 
 NOTE: On an IOC \index{pdbbase}pdbbase is a global variable, which is accessable if you include dbAccess.h
 
@@ -46,10 +46,10 @@ NOTE: On an IOC \index{pdbbase}pdbbase is a global variable, which is accessable
 
 A typical declaration for a database entry structure is:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 DBENTRY *pdbentry;
 pdbentry=dbAllocEntry(pdbbase);
-\end{verbatim}
+\end{lstlisting}
 
 Most static access to a database is via a \verb|DBENTRY| structure.
 As many \verb|DBENTRYs| as desired can be allocated.
@@ -113,9 +113,9 @@ A field that has any of these types can also be accessed via the \verb|dbGetStri
 \subsection{dbAllocBase}
 
 \index{dbAllocBase}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 DBBASE *dbAllocBase(void);
-\end{verbatim}
+\end{lstlisting}
 
 This routine allocates and initializes a DBBASE structure.
 It does not return if it is unable to allocate storage.
@@ -124,11 +124,11 @@ Most applications should not need to call this routine directly.
 The \verb|dbReadDatabase| and \verb|dbReadDatabaseFP| routines will call it automatically if \verb|pdbbase| is null.
 Thus an application normally only has to contain code like the following:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 DBBASE  *pdbbase=0;
 ...
 status = dbReadDatabase(&pdbbase, dbdfile, search_path, macros);
-\end{verbatim}
+\end{lstlisting}
 
 However the static database access library does allow applications to work with multiple databases simultaneously, each referenced via a different DBBASE pointer.
 Such applications may need to call \verb|dbAllocBase| directly.
@@ -136,9 +136,9 @@ Such applications may need to call \verb|dbAllocBase| directly.
 \subsection{dbFreeBase}
 
 \index{dbFreeBase}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbFreeBase(DBBASE *pdbbase);
-\end{verbatim}
+\end{lstlisting}
 
 \verb|dbFreeBase| frees the entire database reference by \verb|pdbbase| including the DBBASE structure itself.
 
@@ -147,10 +147,10 @@ void dbFreeBase(DBBASE *pdbbase);
 \subsection{Alloc/Free DBENTRY}
 
 \index{Alloc/Free DBENTRY}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 DBENTRY *dbAllocEntry(DBBASE *pdbbase);
 void dbFreeEntry(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbAllocEntry}
 \index{dbFreeEntry}
@@ -164,10 +164,10 @@ calls \verb|dbFreeEntry| when done.
 
 \index{dbInitEntry}
 \index{dbFinishEntry}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbInitEntry(DBBASE *pdbbase,DBENTRY *pdbentry);
 void dbFinishEntry(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbInitEntry}
 \index{dbFinishEntry}
@@ -175,7 +175,7 @@ The routines \verb|dbInitEntry| and \verb|dbFinishEntry| are provided in case th
 on the stack. Note that the caller MUST call \verb|dbFinishEntry| before returning from the routine that calls 
 \verb|dbInitEntry|. An example of how to use these routines is:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int xxx(DBBASE *pdbbase)
 {
     DBENTRY dbentry;
@@ -186,7 +186,7 @@ int xxx(DBBASE *pdbbase)
     dbFinishEntry(pdbentry);
 }
 
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{dbCopyEntry}
 
@@ -194,10 +194,10 @@ dbCopyEntry
 
 Contents
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 DBENTRY *dbCopyEntry(DBENTRY *pdbentry);
 void dbCopyEntryContents(DBENTRY *pfrom,DBENTRY *pto);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbCopyEntry}
 \index{dbCopyEntryContents}
@@ -210,14 +210,14 @@ The routine \verb|dbCopyEntryContents| copies the contents of pfrom to pto. Code
 
 \subsection{Read Database File}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbReadDatabase(DBBASE **ppdbbase,const char *filename,
     char *path, char *substitutions);
 long dbReadDatabaseFP(DBBASE **ppdbbase,FILE *fp,
     char *path, char *substitutions);
 long dbPath(DBBASE *pdbbase,const char *path);
 long dbAddPath(DBBASE *pdbbase,const char *path);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbReadDatabase}
 \verb|dbReadDatabase| and \index{dbReadDatabaseFP}\verb|dbReadDatabaseFP| both read a file containing database definitions as described in chapter 
@@ -231,7 +231,7 @@ not normally called by user code.
 
 \subsection{Write Database Definitons}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbWriteMenu(DBBASE *pdbbase,char *filename,char *menuName);
 long dbWriteMenuFP(DBBASE *pdbbase,FILE *fp,char *menuName);
 long dbWriteRecordType(DBBASE *pdbbase,char *filename,char *recordTypeName);
@@ -245,7 +245,7 @@ long dbWriteFunctionFP(DBBASE *pdbbase,FILE *fp);
 long dbWriteVariableFP(DBBASE *pdbbase,FILE *fp);
 long dbWriteBreaktable(DBBASE *pdbbase,const char *filename);
 long dbWriteBreaktableFP(DBBASE *pdbbase,FILE *fp);
-\end{verbatim}
+\end{lstlisting}
 
 Each of these routines writes files in the same format accepted by \verb|dbReadDatabase| and \verb|dbReadDatabaseFP|.
 Two versions of each type are provided.
@@ -284,14 +284,14 @@ descriptions of all record types to the named file.
 
 \subsection{Write Record Instances}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbWriteRecord(DBBASE *pdbbase,char * file,
 
 char *precordTypeName,int level);
 long dbWriteRecordFP(DBBASE *pdbbase,FILE *fp,
 
 char *precordTypeName,int level);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbWriteRecord}
 \index{dbWriteRecordFP}
@@ -309,21 +309,21 @@ If \verb|precordTypeName| is NULL, then the record instances for all record type
 
 \subsection{Get Number of Record Types}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int  dbGetNRecordTypes(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetNRecordTypes}
 This routine returns the number of record types in the database.
 
 \subsection{Locate Record Type}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbFindRecordType(DBENTRY *pdbentry,
 char *recordTypeName);
 long dbFirstRecordType(DBENTRY *pdbentry);
 long dbNextRecordType(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbFindRecordType}
 \index{dbFirstRecordType}
@@ -332,19 +332,19 @@ long dbNextRecordType(DBENTRY *pdbentry);
 record type. Given that DBENTRY points to a particular record type, \verb|dbNextRecordType| locates the next record type. 
 Each routine returns 0 for success and a non zero status value for failure. A typical code segment using these routines is:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 status = dbFirstRecordType(pdbentry);
 while(!status) {
     /*Do something*/
     status = dbNextRecordType(pdbentry)
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Get Record Type Name}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 char *dbGetRecordTypeName(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetRecordTypeName}
 This routine returns the name of the record type that DBENTRY currently references. This routine should only be called 
@@ -357,19 +357,19 @@ The routines described here all assume that DBENTRY references a record type, i.
 
 \subsection{Get Number of Fields}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int  dbGetNFields(DBENTRY *pdbentry,int dctonly);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetNFields}
 Returns the number of fields for the record instance that DBENTRY currently references.
 
 \subsection{Locate Field}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbFirstField(DBENTRY *pdbentry,int dctonly);
 long dbNextField(DBENTRY *pdbentry,int dctonly);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbFirstField}
 \index{dbNextField}
@@ -379,9 +379,9 @@ description.
 
 \subsection{Get Field Type}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int  dbGetFieldType(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetFieldType}
 This routine returns the integer value for a DCT field type.
@@ -389,9 +389,9 @@ See Section \ref{subsec:Field Types} for a description of the field types.
 
 \subsection{Get Field Name}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 char *dbGetFieldName(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetFieldName}
 This routine returns the name of the field that DBENTRY currently references. It returns NULL if DBENTRY does not 
@@ -399,9 +399,9 @@ point to a field.
 
 \subsection{Get Default Value}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 char *dbGetDefault(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetDefaultName}
 This routine returns the default value for the field that DBENTRY currently references. It returns NULL if DBENTRY 
@@ -410,12 +410,12 @@ does not point to a field or if the default value is NULL.
 \subsection{Get Field Prompt}
 \label{subsec:Get Field Prompt}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 char *dbGetPrompt(DBENTRY *pdbentry);
 int   dbGetPromptGroup(DBENTRY *pdbentry);
 char *dbGetPromptGroupNameFromKey(DBBASE *pdbbase, const short key);
 short dbGetPromptGroupKeyFromName(DBBASE *pdbbase, const char *name);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetPrompt}
 \index{dbGetPromptGroup}
@@ -441,10 +441,10 @@ initialized to the value ``none specified" but can be changed by record support.
 
 \subsection{dbPutRecordAttribute}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbPutRecordAttribute(DBENTRY *pdbentry, const char *name,
     const char *value);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbPutRecordAttribute}
 This creates or modifies the attribute \emph{name} of the record type referenced by \emph{pdbentry} to \emph{value}.
@@ -452,9 +452,9 @@ Attribute names should be valid C identifiers, starting with a letter or undersc
 
 \subsection{dbGetRecordAttribute}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbGetRecordAttribute(DBENTRY *pdbentry, const char *name);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetRecordAttribute}
 Looks up the attribute \emph{name} of the record type referenced by \emph{pdbentry} and sets the the field pointer in \emph{pdbentry} to refer to this string if it exists.
@@ -466,29 +466,29 @@ With the exception of \verb|dbFindRecord|, each of the routines described in thi
 
 \subsection{Get Number of Records}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int  dbGetNRecords(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetNRecords}
 Returns the total number of record instances and aliases for the record type that DBENTRY currently references.
 
 \subsection{Get Number of Record Aliases}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbGetNAliases(DBENTRY *pdbentry)
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetNAliases}
 Returns the number of record aliases for the record type that DBENTRY currently references.
 
 \subsection{Locate Record}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbFindRecord(DBENTRY *pdbentry,char *precordName);
 long dbFirstRecord(DBENTRY *pdbentry);
 long dbNextRecord(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbFindRecord}
 \index{dbFirstRecord}
@@ -505,9 +505,9 @@ If it was not found, then \verb|dbFindField| must be called before individual fi
 
 \subsection{Get Record Name}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 char *dbGetRecordName(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetRecordName}
 This routine only works properly if called after \verb|dbFindRecord|, \verb|dbFirstRecord|, or \verb|dbNextRecord| has returned success.
@@ -515,9 +515,9 @@ If DBENTRY refers to an alias, the name returned is that of the alias, not of th
 
 \subsection{Distinguishing Record Aliases}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbIsAlias(DBENTRY *pdbentry)
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbIsAlias}
 This routine only works properly if called after \verb|dbFindRecord|, \verb|dbFirstRecord|, or \verb|dbNextRecord| has returned success.
@@ -525,13 +525,13 @@ If DBENTRY refers to an alias it returns a non-zero value, otherwise it returns 
 
 \subsection{Create/Delete/Free Records and Aliases}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCreateRecord(DBENTRY *pdbentry,char *precordName);
 long dbCreateAlias(DBENTRY *pdbentry, const char *paliasName);
 long dbDeleteRecord(DBENTRY *pdbentry);
 long dbDeleteAliases(DBENTRY *pdbentry);
 long dbFreeRecords(DBBASE *pdbbase);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbCreateRecord}
 \index{dbCreateAlias}
@@ -548,10 +548,10 @@ If it returns success, then DBENTRY references the alias just created.
 
 \subsection{Copy Record}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCopyRecord(DBENTRY *pdbentry, char *newRecordName
     int overWriteOK)
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbCopyRecord}
 This routine copies the record instance currently referenced by \verb|DBENTRY| (it fails if DBENTRY references an alias).
@@ -561,9 +561,9 @@ If \verb|dbCopyRecord| completes successfully, DBENTRY references the new record
 
 \subsection{Rename Record}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbRenameRecord(DBENTRY *pdbentry, char *newname)
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbRenameRecord}
 This routine renames the record instance currently referenced by \verb|DBENTRY| (it fails if DBENTRY references an alias).
@@ -573,11 +573,11 @@ If \verb|dbRenameRecord| completes successfully, DBENTRY references the renamed 
 
 These routines are intended for use by graphical configuration tools.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbVisibleRecord(DBENTRY *pdbentry);
 long dbInvisibleRecord(DBENTRY *pdbentry);
 int dbIsVisibleRecord(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbVisibleRecord}
 \index{dbInvisibleRecord}
@@ -588,11 +588,11 @@ Calling \verb|dbVisibleRecord| makes the record referenced by \verb|DBENTRY| vis
 
 \subsection{Find Field}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbFindField(DBENTRY *pdbentry,char *pfieldName);
 int dbFoundField(DBENTRY *pdbentry);
 
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbFindField}
 \index{dbFoundField}
@@ -602,13 +602,13 @@ If it returns success, then \verb|DBENTRY| references that field.
 
 \subsection{Get/Put Field Values}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 char *dbGetString(DBENTRY *pdbentry);
 long dbPutString(DBENTRY *pdbentry,char *pstring);
 char *dbVerify(DBENTRY *pdbentry,char *pstring);
 char *dbGetRange(DBENTRY *pdbentry);
 int   dbIsDefaultValue(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetString}
 \index{dbPutString}
@@ -632,32 +632,32 @@ Thus they should only be called if \verb|dbFindField|, \verb|dbFirstField|, or \
 
 \subsection{Get Number of Menu Choices}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int  dbGetNMenuChoices(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetNMenuChoices}
 This routine returns the number of menu choices for menu.
 
 \subsection{Get Menu Choice}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 char **dbGetMenuChoices(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetMenuChoices}
 This routine returns the address of an array of pointers to strings which contain the menu choices.
 
 \subsection{Get/Put Menu}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int  dbGetMenuIndex(DBENTRY *pdbentry);
 long dbPutMenuIndex(DBENTRY *pdbentry,int index);
 char *dbGetMenuStringFromIndex(DBENTRY *pdbentry,int index);
 int dbGetMenuIndexFromString(DBENTRY *pdbentry,
 
 char *choice);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetMenuIndex}
 \index{dbPutMenuIndex}
@@ -678,9 +678,9 @@ If the string is not a valid choice -1 is returned.
 \index{dbGetMenuIndexFromString}
 \subsection{Locate Menu}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 dbMenu *dbFindMenu(DBBASE *pdbbase,char *name);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbFindMenu}
 \verb|dbFindMenu| is most useful for runtime use but is a static database access routine.
@@ -725,11 +725,11 @@ The routines \verb|dbGetString|, \verb|dbPutString|, and \verb|dbVerify| can be 
 
 \subsection{All Link Fields}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int  dbGetNLinks(DBENTRY *pdbentry);
 long dbGetLinkField(DBENTRY *pdbentry,int index)
 int  dbGetLinkType(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetNLinks}
 \index{dbGetLinkField}
@@ -740,10 +740,10 @@ through all the link fields of a record. \verb|dbGetLinkType| returns one of the
 
 \subsection{Constant and Process Variable Links}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbCvtLinkToConstant(DBENTRY *pdbentry);
 long dbCvtLinkToPvlink(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbCvtLinkToConstant}
 \index{dbCvtLinkToPvlink}
@@ -752,9 +752,9 @@ for \verb|DCT_LINK_FORM| links, which should be processed via the associated \ve
 
 \subsection{Get Related Field}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 char *dbGetRelatedField(DBENTRY *pdbentry)
-\end{verbatim}
+\end{lstlisting}
 
 This routine returns the field name of the related field for a \verb|DCT_MENUFORM| field.
 If it is called for any other type of field it returns NULL.
@@ -766,11 +766,11 @@ that the DBENTRY argument refer to a valid record instance.
 
 \subsection{Locate Item}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbFirstInfo(DBENTRY *pdbentry);
 long dbNextInfo(DBENTRY *pdbentry);
 long dbFindInfo(DBENTRY *pdbentry,const char *name);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbFirstInfo}
 \index{dbNextInfo}
@@ -780,19 +780,19 @@ These routines set \verb|pdbentry| to refer to the info item and return 0, or re
 
 \subsection{Get Item Name}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 const char * dbGetInfoName(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetInfoName}
 Returns the name of the info item referred to by \verb|pdbentry|, or a NULL pointer if no item is referred to.
 
 \subsection{Get/Set Item String Value}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 const char * dbGetInfoString(DBENTRY *pdbentry);
 long dbPutInfoString(DBENTRY *pdbentry,const char *string);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetInfoString}
 \index{dbPutInfoString}
@@ -804,10 +804,10 @@ The Put routine returns 0 if Ok or an error code; the Get routine returns NULL o
 
 \subsection{Get/Set Item Pointer Value}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void * dbGetInfoPointer(DBENTRY *pdbentry);
 long dbPutInfoPointer(DBENTRY *pdbentry, void *pointer);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetInfoPointer}
 \index{dbPutInfoPointer}
@@ -817,10 +817,10 @@ The Put routine returns 0 if Ok or an error code; the Get routine returns NULL o
 
 \subsection{Create/Delete Item}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long dbPutInfo(DBENTRY *pdbentry,const char *name,const char *string);
 long dbDeleteInfo(DBENTRY *pdbentry);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbPutInfo}
 \index{dbDeleteInfo}
@@ -833,18 +833,18 @@ The function returns 0 on success, or an error code.
 
 \subsection{Convenience Routine}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 const char * dbGetInfo(DBENTRY *pdbentry,const char *name);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbGetInfo}
 It is common to want to look up the value of a named info item in one call, and \verb|dbGetInfo| is provided for this purpose. It returns a NULL pointer if no info item exists with the given name.
 
 \section{Find Breakpoint Table}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 brkTable *dbFindBrkTable(DBBASE *pdbbase,char *name)
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbFindBrkTable}
 This routine returns the address of the specified breakpoint table.
@@ -852,7 +852,7 @@ It is normally used by the runtime breakpoint conversion routines so will not be
 
 \section{Dump Routines}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbDumpPath(DBBASE *pdbbase)
 void dbDumpRecord(DBBASE *pdbbase,char *precordTypeName,int level);
 void dbDumpMenu(DBBASE *pdbbase,char *menuName);
@@ -866,7 +866,7 @@ void dbDumpVariable(DBBASE *pdbbase);
 void dbDumpBreaktable(DBBASE *pdbbase,char *name);
 void dbPvdDump(DBBASE *pdbbase,int verbose);
 void dbReportDeviceConfig(DBBASE *pdbbase,FILE *report);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbDumpPath}
 \index{dbDumpRecord}
@@ -895,7 +895,7 @@ This example is like the \verb|dbExpand| utility, except that it doesn't allow p
 It reads a set of database definition files and writes all definitions to stdout.
 All include statements appearing in the input files are expanded.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* dbExpand.c */
 #include <stdlib.h>
 #include <stddef.h>
@@ -930,7 +930,7 @@ int main(int argc,char **argv)
     return(0);
 }
 
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{dbDumpRecords}
 
@@ -940,7 +940,7 @@ NOTE: This example is similar but not identical to the actual \verb|dbDumpRecord
 The following example demonstrates how to use the database access routines.
 The example shows how to locate each record and display each field.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void dbDumpRecords(DBBASE *pdbbase)
 {
     DBENTRY  *pdbentry;
@@ -973,4 +973,4 @@ void dbDumpRecords(DBBASE *pdbbase)
     printf("End of all Records\n");
     dbFreeEntry(pdbentry);
 }
-\end{verbatim}
+\end{lstlisting}

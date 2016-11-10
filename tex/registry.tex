@@ -13,13 +13,13 @@ which registers all record/device/driver/function support defined in that file.
 \section{Registry.h}
 
 \index{Registry.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int registryAdd(void *registryID,const char *name,void *data);
     void *registryFind(void *registryID,const char *name);
     int registrySetTableSize(int size);
     void registryFree();
     int registryDump(void);
-\end{verbatim}
+\end{lstlisting}
 
 \index{registryAdd}
 \index{registryFind}
@@ -31,7 +31,7 @@ be registered is stored in the same gpHash table.
 
 \section{registryRecordType.h}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef int (*computeSizeOffset)(dbRecordType *pdbRecordType);
 
 typedef struct recordTypeLocation {
@@ -41,7 +41,7 @@ typedef struct recordTypeLocation {
 
 int registryRecordTypeAdd(const char *name, recordTypeLocation *prtl);
 recordTypeLocation *registryRecordTypeFind(const char *name);
-\end{verbatim}
+\end{lstlisting}
 
 \index{computeSizeOffset}
 \index{registryRecordTypeAdd}
@@ -51,10 +51,10 @@ field.
 \section{registryDeviceSupport.h}
 
 \index{registryDeviceSupport.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int registryDeviceSupportAdd(const char *name, struct dset *pdset)
 struct dset *registryDeviceSupportFind(const char *name);
-\end{verbatim}
+\end{lstlisting}
 
 \index{registryDeviceSupportAdd}
 \index{registryDeviceSupportFind}
@@ -63,12 +63,12 @@ This provides addresses for device support entry tables.
 \section{registryDriverSupport.h}
 
 \index{registryDriverSupport.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int registryDriverSupportAdd(const char *name, struct drvet *pdrvet);
 struct drvet *registryDriverSupportFind(const char *name);
 
 int registerRecordDeviceDriver(DBBASE *pdbbase);
-\end{verbatim}
+\end{lstlisting}
 
 \index{registryDriverSupportAdd}
 \index{registryDriverSupportFind}
@@ -78,7 +78,7 @@ This provides addresses for driver support tables.
 \section{registryFunction.h}
 
 \index{registryFunction.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef void (*REGISTRYFUNCTION)(void);
 
 typedef struct registryFunctionRef {
@@ -89,7 +89,7 @@ typedef struct registryFunctionRef {
 int registryFunctionAdd(const char *name, REGISTRYFUNCTION func);
 REGISTRYFUNCTION registryFunctionFind(const char *name);
 int registryFunctionRefAdd(registryFunctionRef ref[], int nfunctions);
-\end{verbatim}
+\end{lstlisting}
 
 \index{registryFunctionRef}
 \index{registryFunctionAdd}

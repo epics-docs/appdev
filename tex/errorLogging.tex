@@ -55,12 +55,12 @@ They in turn call one of the error message routines.
 
 \subsection{Basic Routines}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
    int errlogPrintf(const char *pformat, ...);
    int errlogVprintf(const char *pformat,va_list pvar);
    int errlogMessage(const char *message);
    void errlogFlush(void);
-\end{verbatim}
+\end{lstlisting}
 \index{errlogPrintf}
 \index{errlogVprintf}
 \index{errlogMessage}
@@ -74,7 +74,7 @@ Consult any book that describes the standard C library such as ``The C Programmi
 
 \subsection{Log with Severity}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef enum {
     errlogInfo,errlogMinor,errlogMajor,errlogFatal
 }errlogSevEnum;
@@ -88,7 +88,7 @@ char *errlogGetSevEnumString(const errlogSevEnum severity);
 
 void  errlogSetSevToLog(const errlogSevEnum severity );
 errlogSevEnum errlogGetSevToLog(void);
-\end{verbatim}
+\end{lstlisting}
 
 \index{errlogInfo}
 \index{errlogMinor}
@@ -111,21 +111,21 @@ If \verb|epicsThreadIsOkToBlock| is true, which is true during iocInit, errlogSe
 
 \subsection{Status Routines }
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void errMessage(long status, char *message);
 
 void errPrintf(long status, const char *pFileName,
     int lineno, const char *pformat, ...);
-\end{verbatim}
+\end{lstlisting}
 
 \index{errMessage}
 \index{errPrintf}
 Routine \verb|errMessage| (actually a macro that calls \verb|errPrintf|) has the following format:
 
 \index{errMessage}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void errMessage(long  status, char  *message);
-\end{verbatim}
+\end{lstlisting}
 
 Where status is defined as:
 
@@ -151,9 +151,9 @@ If \verb|errVerbose| is \verb|FALSE| then \verb|errMessage| should be called onl
 Routine \verb|errPrintf| is normally called as follows:
 
 \index{errPrintf}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 errPrintf(status, __FILE__, __LINE__,"<fmt>",...);
-\end{verbatim}
+\end{lstlisting}
 
 Where status is defined as:
 
@@ -181,17 +181,17 @@ The remaining arguments are just like the arguments to the C \verb|printf| routi
 An EPICS status code can also be converted to a string.
 If the supplied status code isn't registered in the status code database then the raw status code number is converted into a string in the destination buffer.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include "errMdef.h"
 void errSymLookup(long status, char *pBuf, unsigned bufLength);
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Obsolete Routines }
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int epicsPrintf(const char *pformat, ...);
 int epicsVprintf(const char *pformat,va_list pvar);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsPrintf}
 \index{epicsVprintf}
@@ -204,11 +204,11 @@ They are provided for compatibility.
 Any code can receive errlog message.
 The following are the calls to add and remove a listener.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef void(*errlogListener) (void *pvt,const char *message);
 void errlogAddListener(errlogListener listener,void *pPrivate);
 void errlogRemoveListener(errlogListener listener);
-\end{verbatim}
+\end{lstlisting}
 
 \index{errlogListener}
 \index{errlogAddListener}
@@ -247,11 +247,11 @@ If it is not OK to block, errlogThread displays the messages.
 Normally the errlog system displays all messages on the console.
 \verb|eltc| can be used to suppress these messages.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int eltc(int yesno); /* error log to console (0 or 1) */
 int errlogInit(int bufsize);
 int errlogInit2(int bufsize, int maxMsgSize);
-\end{verbatim}
+\end{lstlisting}
 
 \index{eltc}
 \index{errlogInit}
@@ -291,35 +291,35 @@ In order that status values do not conflict with the vxWorks error status values
 A header file \verb|errMdef.h| defines macros for all the subsystem numbers.
 For example the database access routines use this module number:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #define M_dbAccess  (501 << 16)   /*Database Access Routines*/
-\end{verbatim}
+\end{lstlisting}
 
 There are header files for every IOC subsystem that returns standard status values.
 The status values are encoded with lines of the following format:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #define S_xxxxxxx value /*string value*/
-\end{verbatim}
+\end{lstlisting}
 
 For example:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #define S_dbAccessBadDBR (M_dbAccess|3) /*Invalid Database Request*/
-\end{verbatim}
+\end{lstlisting}
 
 For example, when \verb|dbGetField| detects a bad database request type, it executes the statement:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 return(S_dbAccessBadDBR);
-\end{verbatim}
+\end{lstlisting}
 
 The calling routine checks the return status as follows:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 status = dbGetField(...);
 if(status) {/* Call was not successful */ }
-\end{verbatim}
+\end{lstlisting}
 
 \section{iocLog}
 \label{sec:iocLog}
@@ -384,9 +384,9 @@ Defaults for all of the above parameters are specified in  the files \$(EPICS\_B
 This runs on each ioc.
 It is started by calling:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 iocLogInit();
-\end{verbatim}
+\end{lstlisting}
 
 The global variable \verb|iocLogDisable| can be used to enable/disable the messages from being sent to the server.
 Setting this variable to (0,1) (enables, disables) the messages generation.

@@ -94,7 +94,7 @@ Corresponding to each record type is a set of record support routines.
 The set of routines is the same for every record type.
 These routines are located via a Record Support Entry Table (\index{RSET}\index{Record Support Entry Table}RSET), which has the following structure:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 struct rset {   /* record support entry table */
     long     number;            /* number of support routine */
     RECSUPFUN   report;         /* print report */
@@ -115,7 +115,7 @@ struct rset {   /* record support entry table */
     RECSUPFUN   get_control_double;
     RECSUPFUN   get_alarm_double;
 };
-\end{verbatim}
+\end{lstlisting}
 
 Each record support module must define its RSET. The external name must be of the form:
 
@@ -128,7 +128,7 @@ Look at the example below for details.
 
 Device support routines are located via a Device Support Entry Table (\index{DSET}\index{Device Support Entry Table}DSET), which has the following structure:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 struct dset {   /* device support entry table */
     long        number;     /* number of support routines */
     DEVSUPFUN   report;     /* print report */
@@ -137,7 +137,7 @@ struct dset {   /* device support entry table */
     DEVSUPFUN    get_ioint_info;   /* get io interrupt info*/
     /* other functions are record dependent*/
 };
-\end{verbatim}
+\end{lstlisting}
 
 Each device support module must define its associated DSET.
 The external name must be the same as the name which appears in \verb|devSup.ascii|.
@@ -156,7 +156,7 @@ Consult the Record Reference manual for a description.
 
 \subsection{Declarations}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* Create RSET - Record Support Entry Table*/
 #define report NULL
 #define initialize NULL
@@ -211,7 +211,7 @@ typedef struct xxxdset { /* analog input dset */
 /* forward declaration for internal routines*/
 static void checkAlarams(xxxRecord *pxxx);
 static void monitor(xxxRecord *pxxx);
-\end{verbatim}
+\end{lstlisting}
 
 \index{RSET - example}The above declarations define the Record Support Entry Table (RSET), a template for the associated Device Support Entry Table (DSET), and forward declarations to private routines.
 
@@ -223,7 +223,7 @@ The template for the DSET is declared for use by this module.
 \subsection{init\_record}
 
 \index{init\_record - example}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static long init_record(void *precord, int  pass)
 {
     xxxRecord*pxxx = (xxxRecord *)precord;
@@ -247,7 +247,7 @@ static long init_record(void *precord, int  pass)
     }
     return(0);
 }
-\end{verbatim}
+\end{lstlisting}
 
 This routine, which is called by \verb|iocInit| twice for each record of type \verb|xxx|, checks to see if it has a proper set of device support routines and, if present, calls the \verb|init_record| entry of the DSET.
 
@@ -263,7 +263,7 @@ This is accomplished by having the waveform record support allocate the array du
 \subsection{process}
 
 \index{process - example}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static long process(void *precord)
 {
     xxxRecord*pxxx = (xxxRecord *)precord;
@@ -295,7 +295,7 @@ static long process(void *precord)
     pxxx->pact=FALSE;
     return(status);
 }
-\end{verbatim}
+\end{lstlisting}
 
 The record processing routines are the heart of the IOC software.
 The record specific process routine is called by \verb|dbProcess| whenever it decides that a record should be processed.
@@ -338,7 +338,7 @@ The next time \verb|process| is called everything starts all over from the begin
 
 \subsection{Miscellaneous Utility Routines}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static long get_units(DBADDR *paddr, char *units)
 {
     xxxRecord  *pxxx=(xxxRecord *)paddr->precord;
@@ -361,7 +361,7 @@ static long get_graphic_double(DBADDR *paddr,
 }
 /* similar routines would be provided for */
 /* get_control_double and get_alarm_double*/
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_units - .example}
 \index{get\_graphic\_double - example}
@@ -370,7 +370,7 @@ The functions that must be performed by the remaining routines are described in 
 
 \subsection{Alarm Processing}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static void checkAlarms(xxxRecord *pxxx)
 {
     double        val;
@@ -420,7 +420,7 @@ static void checkAlarms(xxxRecord *pxxx)
     pxxx->lalm=val;
     return;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \index{checkAlarms}
 This is a typical set of code for checking alarms conditions for an analog type record.
@@ -434,12 +434,12 @@ It honors the hysteresis only when the value is going to a lower alarm severity.
 
 Note the test:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 if(pxxx->udf == TRUE ){
     recGblSetSevr(pxxx,UDF_ALARM,VALID_ALARM);
     return;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \index{udf}
 Database common defines the field \index{UDF}UDF, which means that field VAL is undefined.
@@ -471,7 +471,7 @@ The code that detects an alarm is responsible for raising the alarm.
 
 \subsection{Raising Monitors}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 static void monitor(xxxRecord *pxxx)
 {
     unsigned short   monitor_mask;
@@ -502,7 +502,7 @@ static void monitor(xxxRecord *pxxx)
     }
     return;
 }
-\end{verbatim}
+\end{lstlisting}
 
 \index{monitor - example}All record types should call \verb|recGblResetAlarms| as shown.
 Note that \verb|nsta| and \verb|nsev| will have the value 0 after this routine completes.
@@ -515,10 +515,10 @@ Analog type records should also provide monitor and archive hysteresis fields as
 \verb|db_post_events| results in channel access issuing monitors for clients attached to the record and field.
 The call is
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int db_post_events(void *precord, void *pfield,
     unsigned int monitor_mask)
-\end{verbatim}
+\end{lstlisting}
 where:
 \begin{description}
 \item \verb|precord| - The address of the record
@@ -551,18 +551,18 @@ Any routine that does not apply to a specific record type must be declared \verb
 
 \subsection{Generate Report of Each Field in Record}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long report(void *precord);
-\end{verbatim}
+\end{lstlisting}
 
 \index{report - Record Support Routine}This routine is not used by most record types.
 Any action is record type specific.
 
 \subsection{Initialize Record Processing}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long initialize(void);
-\end{verbatim}
+\end{lstlisting}
 
 \index{init - Record Support Routine}This routine is called once at IOC initialization time.
 Any action is record type specific.
@@ -570,9 +570,9 @@ Most record types do not need this routine.
 
 \subsection{Initialize Specific Record}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long init_record(void *precord, int pass);
-\end{verbatim}
+\end{lstlisting}
 
 \index{init\_record - record support routine}\verb|iocInit| calls this routine twice (pass=0 and pass=1) for each database record of the type handled by this routine.
 It must perform the following functions:
@@ -590,18 +590,18 @@ It must perform the following functions:
 
 \subsection{Process Record}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long process(void *precord);
-\end{verbatim}
+\end{lstlisting}
 
 \index{process - Record Support Routine}
 This routine must follow the guidelines specified previously.
 
 \subsection{Special Processing}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long special(struct dbAddr *paddr, int after);
-\end{verbatim}
+\end{lstlisting}
 
 \index{special - Record Support Routine}
 This routine implements the record type specific special processing for the field referred to by \verb|dbAddr|.
@@ -621,9 +621,9 @@ It should be left as a NULL procedure in the record support entry table.
 
 \subsection{Convert dbAddr Definitions}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long cvt_dbaddr(struct dbAddr *paddr);
-\end{verbatim}
+\end{lstlisting}
 
 \index{cvt\_dbaddr - Record Support Routine}
 This routine is called by \verb|dbNameToAddr| if the field has special set equal to \verb|SPC_DBADDR|.
@@ -647,10 +647,10 @@ This is done when a client connects to the record.
 
 \subsection{Get Array Information}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_array_info(struct dbAddr *paddr,
     long *no_elements, long *offset);
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_array\_info - Record Support Routine}
 This routine returns the current number of elements and the offset of the first value of the specified array.
@@ -665,9 +665,9 @@ When an array field is being written \verb|get_array_info| is called before the 
 
 \subsection{Put Array Information}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long put_array_info(struct dbAddr *paddr, long nNew);
-\end{verbatim}
+\end{lstlisting}
 
 \index{put\_array\_info - Record Support Routine}
 This routine is called after new values have been placed in the specified array.
@@ -676,9 +676,9 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 
 \subsection{Get Units}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_units(struct dbAddr *paddr, char *punits);
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_units - Record Support Routine}
 This routine sets units equal to the engineering units for the field.
@@ -687,9 +687,9 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 
 \subsection{Get Precision}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_precision(struct dbAddr *paddr, long *precision);
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_precision - Record Support Routine}
 This routine gets the precision, i.e.
@@ -700,9 +700,9 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 
 \subsection{Get Enumerated String}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_enum_str(struct dbAddr *paddr, char *p);
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_enum\_str - record Support Routine}
 This routine sets \verb|*p| equal to the ASCII string for the field value.
@@ -714,9 +714,9 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 
 \subsection{Get Strings for Enumerated Field}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_enum_strs(struct dbAddr *paddr, struct dbr_enumStrs *p);
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_enum\_strs - record Support Routine}
 This routine gives values to all fields of structure \verb|dbr_enumStrs|.
@@ -727,9 +727,9 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 
 \subsection{Put Enumerated String}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long put_enum_str(struct dbAddr *paddr, char *p);
-\end{verbatim}
+\end{lstlisting}
 
 \index{put\_enum\_str - Record Support Routine}
 Given an ASCII string, this routine updates the database field.
@@ -741,9 +741,9 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 
 \subsection{Get Graphic Double Information}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_graphic_double(struct dbAddr *paddr, struct dbr_grDouble *p);
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_graphic\_double - Record Support Routine}
 This routine fills in the graphics related fields of structure \verb|dbr_grDouble|.
@@ -753,9 +753,9 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 
 \subsection{Get Control Double Information}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_control_double(struct dbAddr *paddr, struct dbr_ctrlDouble  *p);
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_control\_double - Record Support Routine}
 This routine gives values to all fields of structure \verb|dbr_ctrlDouble|.
@@ -765,9 +765,9 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 
 \subsection{Get Alarm Double Information}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long get_alarm_double(struct dbAddr *paddr, struct dbr_alDouble *p);
-\end{verbatim}
+\end{lstlisting}
 
 \index{get\_alarm\_double Record Support Routine}
 This routine gives values to all fields of structure \verb|dbr_alDouble|.
@@ -782,9 +782,9 @@ These routines are intended for use by the record specific processing routines b
 
 The name of each of these routines begins with ``\verb|recGbl|".
 Code using these routines should
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include <recGbl.h>
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Alarm Status and Severity}
 
@@ -806,17 +806,17 @@ If no change occured it returns 0.
 Thus after calling \verb|recGblResetAlarms| everything is ready for raising alarms the next time the record is processed.
 The example record support module presented above shows how these macros are used.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int recGblSetSevr(void *precord,
     short nsta, short nsevr);
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblSetSevr}
 Returns \verb|TRUE| if it changed \verb|nsta| and/or \verb|nsev|, \verb|FALSE| if it did not change them.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 unsigned short recGblResetAlarms(void  *precord);
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblResetAlarms}
 Returns: Initial value for \verb|monitor_mask|
@@ -837,12 +837,12 @@ The alarm acknowledgement facility it provided for use by alarm handlers.
 
 SUGGESTION: use \index{errlogPrintf}\verb|errlogPrintf| instead of this for new code.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblDbaddrError(
     long   status,
     struct dbAddr  *paddr,
     char   *pcaller_name); /* calling routine name */
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblDbaddrError}
 This routine interfaces with the system wide error handling system to display the following information:
@@ -850,12 +850,12 @@ Status information, process variable name, calling routine.
 
 \subsection{Generate Error: Status String, Record Name, Caller}
 SUGGESTION: use errlogPrintf instead of this for new code.
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblRecordError(
     long   status,
     void   *precord,
     char   *pcaller_name);   /* calling routine name */
-\end{verbatim}
+\end{lstlisting}
 
 \index{errlogPrintf}
 \index{recGblRecordError}
@@ -864,13 +864,13 @@ Status information, record name, calling routine.
 
 \subsection{Generate Error: Record Name, Caller, Record Support Message}
 SUGGESTION: use errlogPrintf instead of this for new code.
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblRecsupError(
     long   status,
     struct   dbAddr   *paddr,
     char   *pcaller_name,   /* calling routine name */
     char   *psupport_name);   /* support routine name*/
-\end{verbatim}
+\end{lstlisting}
 
 \index{errlogPrintf}
 \index{recGblRecsupError}
@@ -879,45 +879,45 @@ Status information, record name, calling routine, record support entry name.
 
 \subsection{Get Graphics Double}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblGetGraphicDouble(struct dbAddr *paddr, struct dbr_grDouble *pgd);
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblGetGraphicDouble}
 This routine can be used by the \verb|get_graphic_double| record support routine to obtain graphics values for fields that it doesn't know how to set.
 
 \subsection{Get Control Double}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblGetControlDouble(struct dbAddr *paddr, struct dbr_ctrlDouble *pcd);
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblGetControlDouble}
 This routine can be used by the \verb|get_control_double| record support routine to obtain control values for fields that it doesn't know how to set.
 
 \subsection{Get Alarm Double}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblGetAlarmDouble(struct dbAddr *paddr, struct dbr_alDouble *pcd);
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblGetAlarmDouble}
 This routine can be used by the \verb|get_alarm_double| record support routine to obtain control values for fields that it doesn't know how to set.
 
 \subsection{Get Precision}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblGetPrec(struct dbAddr *paddr, long *pprecision);
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblGetPrec}
 This routine can be used by the \verb|get_precision| record support routine to obtain the precision for fields that it doesn't know how to set the precision.
 
 \subsection{Get Time Stamp}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblGetTimeStamp(void *precord)
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblGetTimeStamp}
 This routine gets the current time stamp and puts it in the record It does the following:
@@ -936,21 +936,21 @@ The routine then returns.
 
 \subsection{Forward link}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblFwdLink(void *precord);
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblFwdLink}
 This routine can be used by process to request processing of forward links.
 
 \subsection{Initialize Constant Link}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int recGblInitConstantLink(
     struct link  *plink,
     short  dbfType,
     void   *pdest);
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblInitConstantLink}
 Initialize a constant link.
@@ -959,14 +959,14 @@ It returns(FALSE, TRUE) if it (did not, did) modify the destination.
 
 \subsection{Analog Value Deadband Check}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void recGblCheckDeadband(
     epicsFloat64 *poldval,
     const epicsFloat64 newval,
     const epicsFloat64 deadband,
     unsigned *monitor_mask,
     const unsigned add_mask);
-\end{verbatim}
+\end{lstlisting}
 
 \index{recGblCheckDeadband}
 Check if analog (double) value is outside specified deadband, and set bits in monitor mask.

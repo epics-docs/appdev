@@ -17,13 +17,13 @@ It is currently undocumented.
 \verb|postfix.h| defines several macros and the routines used by the calculation record type calcRecord, access security, and other code, to compile and evaluate mathematical expressions.
 The syntax of the infix expressions accepted is described below.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long postfix(const char *psrc, char *ppostfix, short *perror);
 long calcArgUsage(const char *ppostfix, unsigned long *pinputs,
     unsigned long *pstores);
 const char * calcErrorStr(short error);
 long calcPerform(double *parg, double *presult, const char *ppostfix);
-\end{verbatim}
+\end{lstlisting}
 
 \index{postfix}
 \index{calcArgUsage}
@@ -330,13 +330,13 @@ epicsSwap(a, b) & Swaps the values of a and b; the data type must support both c
 \section{epicsExit}
 
 \index{epicsExit}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void epicsExit(int status);
 void epicsExitCallAtExits(void);
 void epicsAtExit(void (*epicsExitFunc)(void *arg), void *arg);
 void epicsExitCallAtThreadExits(void);
 int  epicsAtThreadExit(void (*epicsExitFunc)(void *arg), void *arg);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsExit}
 \index{epicsExitCallAtExits}
@@ -382,7 +382,7 @@ They offer a combination of speed and convenience not available with sprintf().
 \index{cvtLongToOctalString}
 \index{cvtBitsToUlong}
 \index{cvtUlongToBits}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* These functions return the number of ASCII characters generated */
 int cvtFloatToString(float value, char *pstr, unsigned short precision);
 int cvtDoubleToString(double value, char *pstr, unsigned short prec);
@@ -407,7 +407,7 @@ unsigned long cvtUlongToBits(
         epicsUInt32 dest,
         unsigned bitFieldOffset,
         unsigned bitFieldLength);
-\end{verbatim}
+\end{lstlisting}
 
 \section{cxxTemplates}
 
@@ -457,13 +457,13 @@ The dbmf facility stops the memory fragmentation.
 It should NOT be used by code that allocates storage and then keeps it for a considerable period of time before releasing.
 Such code can use the freeList library described below.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int dbmfInit(size_t size, int chunkItems);
 void *dbmfMalloc(size_t bytes);
 void dbmfFree(void* bytes);
 void dbmfFreeChunks(void);
 int dbmfShow(int level);
-\end{verbatim}
+\end{lstlisting}
 
 \index{dbmfInit}
 \index{dbmfMalloc}
@@ -490,7 +490,7 @@ dbmfShow() & Show the status of the dbmf memory pool.
 vxWorks documentation for details. There is an ellXXX() routine to replace most vxWorks lstXXX() routines.
 
 \index{ellLib.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct ELLNODE {
   struct ELLNODE  *next;
   struct ELLNODE  *previous;
@@ -520,7 +520,7 @@ int ellFind (ELLLIST *pList, ELLNODE *pNode);
 void ellFree2 (ELLLIST *pList, FREEFUNC freeFunc);
 void ellFree (ELLLIST *pList);    // Use only if freeFunc is free()
 void ellVerify (ELLLIST *pList);
-\end{verbatim}
+\end{lstlisting}
 
 \index{ELLNODE}
 \index{ELLLIST}
@@ -557,7 +557,7 @@ The unlocked variant is designed so that one writer thread and one reader thread
 The locked variant uses an epicsSpinLock, and works with any numbers of writer and reader threads.
 
 \index{epicsRingBytes.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 epicsRingBytesId epicsRingBytesCreate(int nbytes);
 epicsRingBytesId epicsRingBytesLockedCreate(int nbytes);
 void epicsRingBytesDelete(epicsRingBytesId id);
@@ -569,7 +569,7 @@ int epicsRingBytesUsedBytes(epicsRingBytesId id);
 int epicsRingBytesSize(epicsRingBytesId id);
 int epicsRingBytesIsEmpty(epicsRingBytesId id);
 int epicsRingBytesIsFull(epicsRingBytesId id);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsRingBytesId}
 \index{epicsRingBytesCreate}
@@ -627,7 +627,7 @@ EpicsRingPointer provides methods for creating and using ring buffers (first in 
 The unlocked variant is designed so that one writer thread and one reader thread can access the ring simultaneously without requiring mutual exclusion.
 The locked variant uses an epicsSpinLock, and works with any numbers of writer and reader threads.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 template <class T>
 class epicsRingPointer {
 public:
@@ -651,20 +651,20 @@ private: // Prevent compiler-generated member functions
 private: // Data
     ...
 };
-\end{verbatim}
+\end{lstlisting}
 
 \index{ringPointer}
 An epicsRingPointer cannot be assigned to, copy-constructed, or constructed without giving the \emph{size} argument.
 The C++ compiler will object to some of the statements below:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 epicsRingPointer rp0();   // Error: default constructor is private
 epicsRingPointer rp1(10); // OK
 epicsRingPointer rp2(t1); // Error: copy constructor is private
 epicsRingPointer *prp;    // OK, pointer
 *prp = rp1;               // Error: assignment operator is private
 prp = &rp1;               // OK, pointer assignment and address-of
-\end{verbatim}
+\end{lstlisting}
 
 \begin{center}
 \begin{longtable}{p{1.27778in}p{5.0in}}
@@ -696,22 +696,22 @@ isFull() & Returns true if the ring is full, else false.
 \index{ringPointerGetSize}
 \index{ringPointerIsEmpty}
 \index{ringPointerIsFull}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef void *epicsRingPointerId;
-    epicsRingPointerId epicsRingPointerCreate(int size);
-    epicsRingPointerId epicsRingPointerLockedCreate(int size);
-    void epicsRingPointerDelete(epicsRingPointerId id);
-    /*epicsRingPointerPop returns 0 if the ring was empty */
-    void * epicsRingPointerPop(epicsRingPointerId id) ;
-    /*epicsRingPointerPush returns (0,1) if p (was not, was) put on ring*/
-    int epicsRingPointerPush(epicsRingPointerId id,void *p);
-    void epicsRingPointerFlush(epicsRingPointerId id);
-    int epicsRingPointerGetFree(epicsRingPointerId id);
-    int epicsRingPointerGetUsed(epicsRingPointerId id);
-    int epicsRingPointerGetSize(epicsRingPointerId id);
-    int epicsRingPointerIsEmpty(epicsRingPointerId id);
-    int epicsRingPointerIsFull(epicsRingPointerId id);
-\end{verbatim}
+epicsRingPointerId epicsRingPointerCreate(int size);
+epicsRingPointerId epicsRingPointerLockedCreate(int size);
+void epicsRingPointerDelete(epicsRingPointerId id);
+    /* epicsRingPointerPop returns 0 if the ring was empty */
+void * epicsRingPointerPop(epicsRingPointerId id) ;
+    /* epicsRingPointerPush returns (0,1) if p (was not, was) put on ring */
+int epicsRingPointerPush(epicsRingPointerId id,void *p);
+void epicsRingPointerFlush(epicsRingPointerId id);
+int epicsRingPointerGetFree(epicsRingPointerId id);
+int epicsRingPointerGetUsed(epicsRingPointerId id);
+int epicsRingPointerGetSize(epicsRingPointerId id);
+int epicsRingPointerIsEmpty(epicsRingPointerId id);
+int epicsRingPointerIsFull(epicsRingPointerId id);
+\end{lstlisting}
 
 Each C function corresponds to one of the C++ methods.
 
@@ -728,7 +728,7 @@ epicsRingPointerCreate() creates the unsecured variant, epicsRingPointerLockedCr
 
 \subsubsection{epicsTimerNotify and epicsTimer}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 class epicsTimerNotify {
 public:
     enum restart_t { noRestart, restart };
@@ -764,7 +764,7 @@ public:
 protected:
     virtual ~epicsTimer () = 0; // use destroy
 };
-\end{verbatim}
+\end{lstlisting}
 \begin{center}
 \begin{longtable}{p{1.1in}p{5.0in}}
 \textbf{Method} & \textbf{Meaning}\\
@@ -809,14 +809,16 @@ Display info about object.
 
 \subsubsection{epicsTimerQueue}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 class epicsTimerQueue {
 public:
     virtual epicsTimer & createTimer () = 0;
     virtual void show ( unsigned int level ) const = 0;
 protected:
     virtual ~epicsTimerQueue () = 0;
-};\end{verbatim}
+};
+\end{lstlisting}
+
 \begin{center}
 \begin{longtable}{p{1.1in}p{5.0in}}
 \textbf{Method} & \textbf{Meaning}\\
@@ -830,7 +832,7 @@ show() & Display info about object
 
 \subsubsection{epicsTimerQueueActive}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 class epicsTimerQueueActive : public epicsTimerQueue {
 public:
     static epicsTimerQueueActive & allocate (
@@ -839,7 +841,7 @@ public:
 protected:
     virtual ~epicsTimerQueueActive () = 0;
 };
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsTimerQueueActive}
 \begin{center}
@@ -867,7 +869,7 @@ When the last facility using the queue calls release, all resources used by the 
 These two classes manage a timer queue for single threaded applications. Since it is single threaded, the application is 
 responsible for requesting that the queue be processed.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 class epicsTimerQueueNotify {
 public:
     // called when a new timer is inserted into the queue and the
@@ -887,7 +889,7 @@ public:
     // process returns the delay to the next expire
     virtual double process (const epicsTime & currentTime) = 0;
 };
-\end{verbatim}
+\end{lstlisting}
 
 \begin{center}
 \begin{longtable}{p{1.6in}p{4.9in}}
@@ -930,7 +932,7 @@ It returns the delay until the next timer will expire.
 
 \index{epicsTimerId}
 \index{epicsTimerQueueId}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct epicsTimerForC * epicsTimerId;
 typedef void ( *epicsTimerCallback ) ( void *pPrivate );
 
@@ -964,7 +966,7 @@ void epicsTimerStartDelay(epicsTimerId id, double delaySeconds);
 void epicsTimerCancel ( epicsTimerId id );
 double epicsTimerGetExpireDelay ( epicsTimerId id );
 void epicsTimerShow ( epicsTimerId id, unsigned int level );
-\end{verbatim}
+\end{lstlisting}
 
 The C interface provides most of the facilities as the C++ interface. It does not support the periodic timer features. The 
 typedefs epicsTimerQueueNotifyReschedule and epicsTimerQueueNotifyQuantum are the ``C" interface equivalents to 
@@ -976,7 +978,7 @@ This example allocates a timer queue and two objects which have a timer that use
 schedule itself. The expire() callback just prints the name of the object. After scheduling each object the main thread just 
 sleeps long enough for each expire to occur and then just returns after releasing the queue.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C++]
 #include <stdio.h>
 #include "epicsTimer.h"
 
@@ -1009,13 +1011,13 @@ void epicsTimerExample()
     }
     queue.release();
 }
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{C Example}
 
 This example shows how C programs can use EPICS timers.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include <stdio.h>
 #include <epicsTimer.h>
 #include <epicsThread.h>
@@ -1073,7 +1075,7 @@ tripped.\n");
      */
     epicsTimerQueueRelease(timerQueue);
     return 0;
-\end{verbatim}
+\end{lstlisting}
 
 \section{  fdmgr}
 
@@ -1087,14 +1089,14 @@ free list rather then being returned to the heap via calls to free. When it is n
 in multiples of the element size.
 
 \index{freeList.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void freeListInitPvt(void **ppvt, int size, int nmalloc);
 void *freeListCalloc(void *pvt);
 void *freeListMalloc(void *pvt);
 void freeListFree(void *pvt, void*pmem);
 void freeListCleanup(void *pvt);
 size_t freeListItemsAvail(void *pvt);
-\end{verbatim}
+\end{lstlisting}
 
 \index{freeListInitPvt}
 \index{freeListCalloc}
@@ -1120,7 +1122,7 @@ entry is a list of members that hash to the same value. The user can maintain se
 table by having a different \emph{pvt} value for each directory.
 
 \index{gpHash.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct{
     ELLNODE     node;
     const char  *name;          /*address of name placed in directory*/
@@ -1138,7 +1140,7 @@ void gphDelete(struct gphPvt *pvt, const char *name, void *pvtid);
 void gphFreeMem(struct gphPvt *pvt);
 void gphDump(struct gphPvt *pvt);
 void gphDumpFP(FILE *fp, struct gphPvt *pvt);
-\end{verbatim}
+\end{lstlisting}
 
 \index{GPHENTRY}
 \index{gphInitPvt}
@@ -1174,17 +1176,17 @@ Configuration of the iocLogServer, as well as the standard iocLogClient that int
 
 The header file logClient.h exports the following types and routines:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef void *logClientId;
-\end{verbatim}
+\end{lstlisting}
 
 \index{logClientId}
 An abstract data type, representing a log client.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 logClientId logClientCreate (
     struct in_addr server_addr, unsigned short server_port);
-\end{verbatim}
+\end{lstlisting}
 
 \index{logClientCreate}
 Create a new log client.
@@ -1192,25 +1194,25 @@ Will block the calling task for a maximum of 2 seconds trying to connect to a se
 If a connection cannot be established, an error message is printed on the console, but the log client will keep trying to connect in the background.
 This is done by a background task, that will also periodically (every 5 seconds) flush pending messages out to the server.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void logClientSend (logClientId id, const char *message);
-\end{verbatim}
+\end{lstlisting}
 
 \index{logClientSend}
 Send the given message to the given log client.
 Messages are not immediately sent to the log server.
 Instead they are sent whenever the cache overflows, or logClientFlush() is called.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void logClientFlush (logClientId id);
-\end{verbatim}
+\end{lstlisting}
 
 \index{logClientFlush}
 Immediately send all outstanding messages to the server.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void logClientShow (logClientId id, unsigned level);
-\end{verbatim}
+\end{lstlisting}
 
 \index{logClientShow}
 Print information about the log clients internal state to stdout.
@@ -1220,16 +1222,16 @@ See Chapter 10.7.2.
 
 Also for backward compatibility, the following deprecated routines are exported.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 logClientId logClientInit (void);
-\end{verbatim}
+\end{lstlisting}
 
 \index{logClientInit}
 Create a log client using the environment variables \verb|EPICS_IOC_LOG_INET| and \verb|EPICS_IOC_LOG_PORT| as inputs to \verb|logClientCreate| and also registers the client with the errlog task using \verb|errlogAddListener|.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void logClientSendMessage (logClientId id, const char *message);
-\end{verbatim}
+\end{lstlisting}
 
 \index{logClientSendMessage}
 Check the global variable iocLogDisable before calling logClientSend.
@@ -1240,7 +1242,7 @@ Check the global variable iocLogDisable before calling logClientSend.
 It is used for all macro substitution in base.
 
 \index{macLib.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long macCreateHandle(
     MAC_HANDLE  **handle,       /* address of variable to receive pointer */
                                 /* to new macro substitution context */
@@ -1322,7 +1324,7 @@ epicsShareAPI macDefExpand(
     MAC_HANDLE *macros          /* opaque handle; can be NULL if default */
                                 /* special characters are to be used */
 );
-\end{verbatim}
+\end{lstlisting}
 
 \index{macCreateHandle}
 \index{macSuppressWarning}
@@ -1358,7 +1360,7 @@ method is the use an existing shared thread pool. Alternately, a new
 pool may be explicitly created. In both cases \verb|NULL| may be passed to use
 the configuration, or a non-default configuration may be prepared in the following way.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct {
     unsigned int initialThreads;
     unsigned int maxThreads;
@@ -1367,7 +1369,7 @@ typedef struct {
 } epicsThreadPoolConfig;
 
 void epicsThreadPoolConfigDefaults(epicsThreadPoolConfig *);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsThreadPoolConfig}
 \index{epicsThreadPoolConfigDefaults}
@@ -1394,10 +1396,10 @@ These defaults are choosen to be suitable for CPU intensive background work by d
 
 \subsection{Create a shared pool}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 epicsThreadPool* epicsThreadPoolGetShared(epicsThreadPoolConfig *opts);
 void epicsThreadPoolReleaseShared(epicsThreadPool *pool);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsThreadPoolGetShared}
 \index{epicsThreadPoolReleaseShared}
@@ -1412,7 +1414,7 @@ Note that \verb|NULL| may be passed to use the default configuration.
 
 As for example:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void usercode() {
   epicsThreadPoolConfig myconf;
   epicsThreadPoolConfigDefault(&myconf);
@@ -1423,7 +1425,7 @@ void usercode() {
   /* or to use the defaults */
   ... = epicsThreadPoolGetShared(NULL);
 }
-\end{verbatim}
+\end{lstlisting}
 
 The user provided configuration may be altered to ensure that the
 maxThreads is greater than or equal to the number of threads the host
@@ -1450,10 +1452,10 @@ Note that the initialThreads option is ignored when requesting a shared pool.
 
 \subsection{Creating an exclusive pool}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 epicsThreadPool* epicsThreadPoolCreate(epicsThreadPoolConfig *opts);
 void epicsThreadPoolDestroy(epicsThreadPool *);
-\end{verbatim}
+\end{lstlisting}
 
 
 \index{epicsThreadPoolCreate}
@@ -1468,7 +1470,7 @@ from being added, then block until any previously queued jobs complete.
 
 \subsection{Basic job operations}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* job modes */
 typedef enum {
     epicsJobModeRun,
@@ -1483,7 +1485,7 @@ epicsJob* epicsJobCreate(epicsThreadPool* pool,
 void epicsJobDestroy(epicsJob*);
 int epicsJobQueue(epicsJob*);
 int epicsJobUnqueue(epicsJob*);
-\end{verbatim}
+\end{lstlisting}
 
 
 \index{epicsJobMode}
@@ -1528,7 +1530,7 @@ It is always the responsibility of user code to explicitly call \verb|epicsJobDe
 
 \subsection{Writing job functions}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct {
   epicsJob* job;
   ...
@@ -1559,7 +1561,7 @@ void somewhere(...)
    epicsJobQueue(priv->job);
    epicsThreadPoolDestroy(pool);
 }
-\end{verbatim}
+\end{lstlisting}
 
 
 Some restrictions apply to job functions. Only the following epicsThreadPool
@@ -1598,7 +1600,7 @@ at runtime with the \verb|epicsJobMove()| function.
 
 \subsection{Pool control}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef enum {
     epicsThreadPoolQueueAdd,
     epicsThreadPoolQueueRun
@@ -1607,7 +1609,7 @@ void epicsThreadPoolControl(epicsThreadPool* pool,
                             epicsThreadPoolQueueOption opt,
                             unsigned int val);
 int epicsThreadPoolWait(epicsThreadPool* pool, double timeout);
-\end{verbatim}
+\end{lstlisting}
 
 
 \index{epicsThreadPoolQueueAdd}
@@ -1640,10 +1642,10 @@ or non-zero if the timeout period ellapses and jobs remain in the queue or are r
 The function prototype for this routine appears in \verb|osiSock.h|
 
 \index{osiSock.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int aToIPAddr(const char *pAddrString, unsigned short defaultPort,
               struct sockaddr_in *pIP);
-\end{verbatim}
+\end{lstlisting}
 
 \index{aToIPAddr}
 aToIPAddr() fills in the structure pointed to by the \emph{pIP} argument with the Internet address and port number specified by the \emph{pAddrString} argument.
@@ -1674,9 +1676,9 @@ However the numeric forms are interpreted by the operating system's gethostbynam
 \verb|adjustment.h| describes a single function:
 
 \index{adjustment.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 size_t adjustToWorstCaseAlignment(size_t size);
-\end{verbatim}
+\end{lstlisting}
 
 \index{adjustToWorstCaseAlignment}
 adjustToWorstCaseAlignment() returns a value \textgreater{}= \emph{size} that an exact multiple of the worst case alignment for the architecture on which the routine is executed.
@@ -1686,11 +1688,11 @@ adjustToWorstCaseAlignment() returns a value \textgreater{}= \emph{size} that an
 \verb|cantProceed.h| declares routines that are provided for code that can't proceed when an error occurs.
 
 \index{cantProceed.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void cantProceed(const char *errorMessage, ...);
 void *callocMustSucceed(size_t count, size_t size,const char *errorMessage);
 void *mallocMustSucceed(size_t size, const char *errorMessage);
-\end{verbatim}
+\end{lstlisting}
 
 \index{cantProceed}
 \index{callocMustSucceed}
@@ -1731,9 +1733,9 @@ If size or count are zero, or the memory allocation fails, they output a message
 \verb|epicsConvert.h| currently describes:
 
 \index{epicsConvert.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 float epicsConvertDoubleToFloat(double value);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsConvertDoubleToFloat}
 \verb|epicsConvertDoubleToFloat| converts a double to a float.
@@ -1745,7 +1747,7 @@ A floating exception is never raised.
 \verb|epicsString.h| currently describes:
 
 \index{epicsString.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int epicsStrnRawFromEscaped(char *dst, size_t dstlen, const char *src,
     size_t srclen);
 int epicsStrnEscapedFromRaw(char *outbuf, size_t outsize, const char *inbuf,
@@ -1760,7 +1762,7 @@ char *epicsStrtok_r(char *s, const char *delim, char **lasts);
 unsigned int epicsStrHash(const char *str, unsigned int seed);
 unsigned int epicsMemHash(const char *str, size_t length,
     unsigned int seed);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsStrnRawFromEscaped}
 \index{epicsStrnEscapedFromRaw}
@@ -1824,7 +1826,7 @@ The final result should be masked to achieve the desired number of bits in the h
 \index{epicsTypes.h}
 \verb|epicsTypes.h| provides typedefs for architecture independent data types.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef char            epicsInt8;
 typedef unsigned char   epicsUInt8;
 typedef short           epicsInt16;
@@ -1835,7 +1837,7 @@ typedef unsigned        epicsUInt32;
 typedef float           epicsFloat32;
 typedef double          epicsFloat64;
 typedef epicsInt32      epicsStatus;
-\end{verbatim}
+\end{lstlisting}
 
 So far the definitions provided in this header file have worked on all architectures.
 In addition to the above definitions \verb|epicsTypes.h| has a number of definitions for displaying the types and other useful definitions.
@@ -1851,10 +1853,10 @@ Not documented here.
 \index{shareLib.h}
 This is the header file for the ``decorated names" that appear in header files, e.g.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #define epicsExportSharedSymbols
 epicsShareFunc int epicsShareAPI a_func(int arg);
-\end{verbatim}
+\end{lstlisting}
 
 \index{epicsShareFunc}
 \index{epicsShareAPI}
@@ -1865,10 +1867,10 @@ Note that the \verb|epicsShareAPI| decorator is deprecated for all new EPICS API
 \subsection{truncateFile.h}
 
 \index{truncateFile.h}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 enum TF_RETURN {TF_OK=0, TF_ERROR=1};
 TF_RETURN truncateFile (const char *pFileName, unsigned size);
-\end{verbatim}
+\end{lstlisting}
 
 \index{truncateFile}
 where
@@ -1896,7 +1898,7 @@ Defines macros OSI\_PATH\_LIST\_SEPARATOR and OSI\_PATH\_SEPARATOR
 The unit test routines make it easy for a test program to generate output that is compatible with the Test Anything Protocol and can thus be used with Perl's automated Test::Harness as well as generating human-readable output.
 The routines detect whether they are being run automatically and print a summary of the results at the end if not.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void testPlan(int tests);
 int  testOk(int pass, const char *fmt, ...);
 #define testOk1(cond) testOk(cond, "%s", #cond)
@@ -1915,7 +1917,7 @@ epicsShareFunc void testHarness(void);
 epicsShareFunc void runTestFunc(const char *name, TESTFUNC func);
 
 #define runTest(func) runTestFunc(#func, func)
-\end{verbatim}
+\end{lstlisting}
 
 \index{testPlan}
 \index{testOk}
@@ -1964,14 +1966,14 @@ The last test program or the harness program itself must finish by calling epics
 Some tests require the context of an IOC to be run. This conflicts with the idea of running multiple tests within a test harness, as iocInit() is only allowed to be called once, and some parts of the full IOC (e.g. the rsrv CA server) can not be shut down cleanly.
 The function iocBuildIsolated() allows to start an IOC without its Channel Access parts, so that it can be shutdown quite cleany using iocShutdown(). This feature is only intended to be used from test programs. Do not use it on productional IOCs. After building the IOC using iocBuildIsolated() or iocBuild(), it has to be started by calling iocRun(). The suggested call sequence in a test program that needs to run the IOC without Channel Access is:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include "iocInit.h"
 
 MAIN(iocTest)
 {
     iocBuildIsolated() || iocRun();
 
-[... test code ...]
+    /* ... test code ... */
 
     iocShutdown();
     dbFreeBase(pdbbase);
@@ -1979,7 +1981,7 @@ MAIN(iocTest)
     pdbbase = NULL;
     return testDone();
 }
-\end{verbatim}
+\end{lstlisting}
 
 The part from iocBuildIsolated() to iocShutdown() can be repeated to execute multiple tests within one executable or harness.
 
@@ -1988,7 +1990,7 @@ To make it easier to create a single test program that can be built for both the
 \index{testMain.h}
 The following is a simple example of a test program using the epicsUnitTest routines:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include <math.h>
 #include "epicsUnitTest.h"
 #include "testMain.h"
@@ -2002,7 +2004,7 @@ MAIN(mathTest)
         testDiag("4*atan(1) = %g", 4.0*atan(1.0));
     return testDone();
 }
-\end{verbatim}
+\end{lstlisting}
 
 The output from running the above program looks like this:
 
