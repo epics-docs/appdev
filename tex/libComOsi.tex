@@ -1697,37 +1697,39 @@ public:
     // convert to and from EPICS epicsTimeStamp format
     operator epicsTimeStamp () const;
     epicsTime (const epicsTimeStamp &ts);
-    epicsTime operator = (const epicsTimeStamp &rhs);
+    epicsTime & operator = (const epicsTimeStamp &rhs);
 
     // convert to and from ANSI time_t 
     operator time_t_wrapper () const;
     epicsTime (const time_t_wrapper &tv);
-    epicsTime operator = (const time_t_wrapper &rhs);
+    epicsTime & operator = (const time_t_wrapper &rhs);
 
     // convert to and from ANSI Cs "struct tm" (with nano seconds)
     // adjusted for the local time zone
     operator local_tm_nano_sec () const;
     epicsTime (const local_tm_nano_sec &ts);
-    epicsTime operator = (const local_tm_nano_sec &rhs);
+    epicsTime & operator = (const local_tm_nano_sec &rhs);
 
-    // convert to ANSI Cs "struct tm" (with nano seconds)
+    // convert to and from ANSI Cs "struct tm" (with nano seconds)
     // adjusted for GM time (UTC)
     operator gm_tm_nano_sec () const;
+    epicsTime ( const gm_tm_nano_sec & );
+    epicsTime & operator = ( const gm_tm_nano_sec & );
 
     // convert to and from POSIX RT's "struct timespec"
     operator struct timespec () const;
     epicsTime (const struct timespec &ts);
-    epicsTime operator = (const struct timespec &rhs);
+    epicsTime & operator = (const struct timespec &rhs);
 
     // convert to and from BSD's "struct timeval"
     operator struct timeval () const;
     epicsTime (const struct timeval &ts);
-    epicsTime operator = (const struct timeval &rhs);
+    epicsTime & operator = (const struct timeval &rhs);
 
     // convert to and from NTP timestamp format
     operator l_fp () const;
     epicsTime (const l_fp &);
-    epicsTime operator = (const l_fp &rhs);
+    epicsTime & operator = (const l_fp &rhs);
 
     // convert to and from WIN32s FILETIME (implemented only on WIN32)
     operator struct _FILETIME () const;
@@ -1789,23 +1791,151 @@ Convert to/from integer & Does not currently check that the range of the integer
 
 \index{epicsTime}
 \begin{center}
-\begin{longtable}{p{1.95833in}p{4.79167in}}
-\textbf{Method} & \textbf{Meaning}\\
-\hline
-epicsTime() & The default constructor sets the time to the beginning of the epics epoch.\\
-epicsTime(const epicsTime\& t); & The default constructor sets the time to the beginning of the epics epoch.\\
-static getEvent & Returns an epicsTime indicating when the associated event last occurred. See the description of the C routine epicsTimeGetEvent below for details.\\
-static getCurrent & Returns an epicsTime containing the current time. An example is:    epicsTime time = epicsTime::getCurrent();\\
-convert to/fromepicsTimeStamp & Three methods are provided for epicsTimeStamp. A copy constructor, an assignment operator, and a conversion to epicsTimeStamp. Assume the following definitions:    epicsTime time;    epicsTimeStamp ts;An example of the copy constructor is:    epicsTime time1(ts);An example of the assignment operator is:    time = ts;An example of the epicsTimeStamp operator is:    ts = time;\\
-Convert to/fromANSI time\_t & Three methods are provided for ANSI time\_t. A copy constructor, an assignment operator, and a conversion to time\_t\_wrapper. The structure time\_t\_wrapper must be used instead of time\_t because undesired conversions could occur: Assume the following definitions:    time\_t tt;    time\_t\_wrapper ttw;    epicsTime time;An example of the copy constructor is:    ttw.tt = tt;    epicsTime time1(ttw);An example of the assignment operator is:    time = ttw;An example of the time\_t\_wrapper operator is:    ttw = time;    tt = ttw.tt;\\
-convert to and fromtm\_nano\_sec & Three methods are provided for tm\_nano\_sec A copy constructor, an assignment operator, and a conversion to tm\_nano\_sec. Assume the following definitions:    local\_tm\_nano\_sec ttn;    epicsTime time;An example of the copy constructor is:    epicsTime time1(ttn);An example of the assignment operator is:    time = ttn;An example of the tm\_nano\_sec operator is:    ttn = time;\\
-convert to and fromPOSIX RT's ``struct timespec" & Three methods are provided for struct timespec. A copy constructor, an assignment operator, and a conversion to struct timespec. Assume the following definitions:    struct timespec tts;    epicsTime time;An example of the copy constructor is:    epicsTime time1(tts);An example of the assignment operator is:    time = tts;An example of the struct timespec operator is:    tts = time;\\
-convert to and from BSD's ``struct timeval" & Three methods are provided for struct timeval. A copy constructor, an assignment operator, and a conversion to struct timeval. Assume the following definitions:    struct timeval ttv;    epicsTime time;An example of the copy constructor is:    epicsTime time1(ttv);An example of the assignment operator is:    time = ttv;An example of the struct timeval operator is:    ttv = time;\\
-convert to and from NTP timestamp format & Three methods are provided for ntpTimeStamp. A copy constructor, an assignment operator, and a conversion to ntpTimeStamp. Assume the following definitions:    l\_fp ntp;    epicsTime time;An example of the copy constructor is:    epicsTime time1(ntp);An example of the assignment operator is:    time = ntp;An example of the ntpTimeStamp operator is:    ntp = time;\\
-arithmetic operators- ++=-= & The arithmetic operators allow the difference of two epicsTimes, with the result in seconds. It also allows -, +, +=, and -= where the left hand argument is an epicsTime and the right hand argument is a double. Examples are:    epicsTime time, time1, time2;    double t1,t2,t3;    ...    t1 = time2 - time1;    time = time1 + 4.5;    time = time2 - t3;    time2 += 6.0;\\
-Comparison operators==, \textbar{}=, \textless{}=, \textless{}, \textgreater{}=, \textgreater{} & Two epics times can be compared:    epicsTime time1, time2;    ...    if(time1\textless{}=time2) \{ ...\\
-strftime & This is a facility similar to the ANSI C library routine strftime. See K\&R for details about strftime. The epicsTime method also provides support for the printing the nanoseconds portion of the time. It looks in the format string for the sequence ``\%0nf" where n is the desired precision. It uses this format to convert the nanoseconds value to the requested precision. For example:    epicsTime time = epicsTime::getCurrent();    char buf[30];    time.strftime(buf,30,"\%Y/\%m/\%d \%H:\%M:\%S.\%06f");    printf("\%s\textbackslash{}n",buf);Will print the time in the format:    2001/01/26 20:50:29.813505\\
-show & Shows the date/time.
+\begin{longtable}{p{2in}p{4.75in}}
+\textbf{epicsTime Method} & \textbf{Meaning}\\
+\hline \endhead
+epicsTime() &
+The default constructor sets the time to the beginning of the epics epoch.\\
+
+epicsTime(const epicsTime \&t) &
+Copy constructor, copies the time from its argument.\\
+
+static getEvent &
+Returns an epicsTime indicating when the associated event last occurred.
+See the description of the C routine epicsTimeGetEvent below for details.\\
+
+static getCurrent &
+Returns an epicsTime containing the current time.
+For example:\newline
+\verb|    epicsTime now = epicsTime::getCurrent();|\\
+
+convert to/from epicsTimeStamp &
+Three epicsTime methods interface with epicsTimeStamp values:
+A constructor, an assignment operator, and a conversion operator.
+For example:\newline
+\verb|    epicsTimeStamp ts1 = {12345, 67890}, ts2;| \newline
+\verb|    epicsTime t1(ts1), t2; //| \emph{constructor} \newline
+\verb|    t2 = ts1;              //| \emph{assignment} \newline
+\verb|    ts2 = t1;              //| \emph{conversion operator} \\
+
+convert to/from time\_t &
+The structure time\_t\_wrapper is used instead of time\_t directly to avoid undesired conversions to integer types.
+Three methods are provided for ANSI time\_t:
+A constructor, an assignment operator, and a conversion operator.
+Assume the following definitions:\newline
+\verb|    time_t tt;| \newline
+\verb|    time_t_wrapper ttw;| \newline
+\verb|    epicsTime time;| \newline
+An example of the copy constructor is: \newline
+\verb|    ttw.ts = tt;| \newline
+\verb|    epicsTime time1(ttw);| \newline
+An example of the assignment operator is: \newline
+\verb|    time = ttw;| \newline
+An example of the time\_t\_wrapper operator is: \newline
+\verb|    ttw = time;| \newline
+\verb|    tt = ttw.ts;| \\
+
+convert to/from struct tm in local timezone &
+The structure local\_tm\_nano\_sec is used instead of struct tm directly to add a nanoseconds field and indicate the time is expressed in the local timezone.
+Three methods are provided for local\_tm\_nano\_sec:
+A constructor, an assignment operator, and a conversion operator.
+Assume the following definitions:\newline
+\verb|    local_tm_nano_sec ltn;| \newline
+\verb|    epicsTime time;| \newline
+An example of the copy constructor is: \newline
+\verb|    epicsTime time1(ltn);| \newline
+An example of the assignment operator is: \newline
+\verb|    time = ltn;| \newline
+An example of the local\_tm\_nano\_sec operator is: \newline
+\verb|    ltn = time;| \\
+
+convert to/from struct tm in UTC &
+The structure local\_tm\_nano\_sec is used instead of struct tm directly to add a nanoseconds field and indicate the time is expressed in UTC.
+Three methods are provided for gm\_tm\_nano\_sec:
+A constructor, an assignment operator, and a conversion operator.
+Assume the following definitions:\newline
+\verb|    gm_tm_nano_sec gtn;| \newline
+\verb|    epicsTime time;| \newline
+An example of the copy constructor is: \newline
+\verb|    epicsTime time1(gtn);| \newline
+An example of the assignment operator is: \newline
+\verb|    time = gtn;| \newline
+An example of the gm\_tm\_nano\_sec operator is: \newline
+\verb|    gtn = time;| \\
+
+convert to/from struct timespec &
+Three methods are provided for the POSIX struct timespec:
+A constructor, an assignment operator, and a conversion operator.
+Assume the following definitions:\newline
+\verb|    struct timespec tts;| \newline
+\verb|    epicsTime time;| \newline
+An example of the copy constructor is: \newline
+\verb|    epicsTime time1(tts);| \newline
+An example of the assignment operator is: \newline
+\verb|    time = tts;| \newline
+An example of the conversion operator is: \newline
+\verb|    tts = time;| \\
+
+convert to/from struct timeval &
+Three methods are provided for BSD's struct timeval:
+A constructor, an assignment operator, and a conversion operator.
+Assume the following definitions:\newline
+\verb|    struct timeval ttv;| \newline
+\verb|    epicsTime time;| \newline
+An example of the copy constructor is: \newline
+\verb|    epicsTime time1(ttv);| \newline
+An example of the assignment operator is: \newline
+\verb|    time = ttv;| \newline
+An example of the conversion operator is: \newline
+\verb|    ttv = time;| \\
+
+convert to/from NTP timestamps &
+Three methods are provided for the NTP timestamp structure:
+A constructor, an assignment operator, and a conversion operator.
+Assume the following definitions:\newline
+\verb|    l_fp ntp;| \newline
+\verb|    epicsTime time;| \newline
+An example of the copy constructor is: \newline
+\verb|    epicsTime time1(ntp);| \newline
+An example of the assignment operator is: \newline
+\verb|    time = ntp;| \newline
+An example of the conversion operator is: \newline
+\verb|    ntp = time;| \\
+
+arithmetic operators -, +, +=, -= &
+The arithmetic operators allow the difference of two epicsTimes, with the result in seconds.
+It also allows -, +, +=, and -= where the left hand argument is an epicsTime and the right hand argument is a double.
+Examples are:\newline
+\verb|    epicsTime time, time1, time2;| \newline
+\verb|    double t1,t2,t3;| \newline
+\verb|    ...| \newline
+\verb|    t1 = time2 - time1;| \newline
+\verb|    time = time1 + 4.5;| \newline
+\verb|    time = time2 - t3;| \newline
+\verb|    time2 += 6.0;| \\
+
+Comparison operators ==, \textbar{}=, \textless{}=, \textless{}, \textgreater{}=, \textgreater{} &
+Two epics times can be compared:\newline
+\verb|    epicsTime time1, time2;| \newline
+\verb|    ...| \newline
+\verb|    if (time1 <= time2)| \newline
+\verb|        ...| \\
+
+strftime &
+This method is an extension of the standard C library routine strftime.
+See your OS documentation for details about the standard routine.
+The epicsTime method adds support for the printing the fractional portion of the time.
+It searches the format string for the sequence \verb|%0nf| where n is the desired precision, and uses this format to convert the fractional seconds to the requested precision.
+For example: \newline
+\verb|    epicsTime time = epicsTime::getCurrent();| \newline
+\verb|    char buf[30];| \newline
+\verb|    time.strftime(buf, 30, "%Y-%m-%d %H:%M:%S.%06f");| \newline
+\verb|    printf("%s\n", buf);| \newline
+This will print the current time in the format: \newline
+\verb|    2001-01-26 20:50:29.813505| \\
+
+show &
+Shows the date/time.
 \end{longtable}
 
 \end{center}
@@ -1840,6 +1970,8 @@ int epicsTimeToTM (struct tm *pDest, unsigned long *pNSecDest,
 int epicsTimeToGMTM (struct tm *pDest, unsigned long *pNSecDest,
     const epicsTimeStamp *pSrc);
 int epicsTimeFromTM (epicsTimeStamp *pDest, const struct tm *pSrc,
+    unsigned long nSecSrc);
+int epicsTimeFromGMTM (epicsTimeStamp *pDest, const struct tm *pSrc,
     unsigned long nSecSrc);
 
 /* convert to and from POSIX RT's "struct timespec" */
