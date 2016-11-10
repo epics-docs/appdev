@@ -88,13 +88,16 @@ ASC_SRC = $(ASC_DIR)/ca_protocol.txt
 
 # Dia Sources
 DIA_DIR = $(ASC_DIR)/dia
-DIA_SRCS += $(DIA_DIR)/virtual-circuit.dia
 DIA_SRCS += $(DIA_DIR)/connection-states.dia
 DIA_SRCS += $(DIA_DIR)/repeater.dia
 
-# Diagrams converted from dia
-PNGS = $(patsubst $(DIA_DIR)/%.dia,$(CAP_DIR)/%.png,$(DIA_SRCS))
+# Dot Sources
+DOT_DIR = $(ASC_DIR)/dot
+DOT_SRCS += $(DOT_DIR)/camessage.dot
 
+# Diagrams converted from dia or dot sources
+PNGS += $(patsubst $(DIA_DIR)/%.dia,$(CAP_DIR)/%.png,$(DIA_SRCS))
+PNGS += $(patsubst $(DOT_DIR)/%.dot,$(CAP_DIR)/%.png,$(DOT_SRCS))
 
 #### Generator options
 
@@ -180,6 +183,9 @@ $(CAP_DIR)/index.html: $(ASC_SRC) $(PNGS)
 
 $(CAP_DIR)/%.png: $(DIA_DIR)/%.dia | $(CAP_DIR)
 	dia -t png -e $@ $<
+
+$(CAP_DIR)/%.png: $(DOT_DIR)/%.dot | $(CAP_DIR)
+	dot -T png -o $@ $<
 
 $(CAP_DIR):
 	mkdir -p $@
