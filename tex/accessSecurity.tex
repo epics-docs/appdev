@@ -266,9 +266,9 @@ The TRAPWRITE setting used for a client is determined by the first WRITE rule th
 
 After creating or modifying an access configuration file it can be checked for syntax errors by issuing the command:
 
-\begin{verbatim}
+\begin{lstlisting}[language=sh]
 ascheck -S "xxx=yyy,..." < "filename"
-\end{verbatim}
+\end{lstlisting}
 
 \index{ascheck}This is a Unix command. It displays errors on \verb|stdout|. If no errors are detected it prints nothing. Only syntax errors not 
 logic errors are detected. Thus it is still possible to get your self in trouble. The flag \verb|-S| means a set of macro 
@@ -625,7 +625,7 @@ database. An ASGCLIENT is created each time asAddClient is called by a channel a
 
 The following are descriptions of arguments of routines described later.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct asgMember *ASMEMBERPVT;
 typedef struct asgClient *ASCLIENTPVT;
 typedef int (*ASINPUTFUNCPTR)(char *buf,int max_size);
@@ -634,16 +634,15 @@ typedef enum{
     /*For now this is all*/
 } asClientStatus;
 typedef void (*ASCLIENTCALLBACK)(ASCLIENTPVT,asClientStatus);
-
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{Initialization}
 
-\begin{verbatim}
-long asInitialize(ASINPUTFUNPTR inputFunction)
-long asInitFile(const char *filename,const char *substitutions)
-long asInitFP(FILE *fp,const char *substitutions)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+long asInitialize(ASINPUTFUNPTR inputFunction);
+long asInitFile(const char *filename,const char *substitutions);
+long asInitFP(FILE *fp,const char *substitutions);
+\end{lstlisting}
 
 \index{asInitialize}
 \index{asInitFile}
@@ -664,9 +663,9 @@ database.
 
 \subsubsection{add Member}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asAddMember(ASMEMBERPVT *ppvt, const char *asgName);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asAddMember}
 This routine adds a new member to ASG \verb|asgName|. The calling routine must provide storage for \verb|ASMEMBERPVT|. Upon 
@@ -679,9 +678,9 @@ This routine returns \verb|S_asLib_asNotActive| without doing anything if access
 
 \subsubsection{remove Member}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asRemoveMember(ASMEMBERPVT *ppvt);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asRemoveMember}
 This routine removes a member from an access control group. If any clients are still present it returns an error status of 
@@ -691,9 +690,9 @@ This routine returns S\_asLib\_asNotActive without doing anything if access cont
 
 \subsubsection{get Member Pvt}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void *asGetMemberPvt(ASMEMBERPVT pvt);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asGetMemberPvt}
 For each member, the access system keeps a pointer that can be used by the caller. This routine returns the value of the 
@@ -703,9 +702,9 @@ This routine returns NULL if access security is not active
 
 \subsubsection{put Member Pvt}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asPutMemberPvt(ASMEMBERPVT pvt,void *userPvt);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asPutMemberPvt}
 This routine is used to set the pointer returned by asGetMemberPvt.
@@ -714,9 +713,9 @@ This routine returns \verb|S_asLib_asNotActive| without doing anything if access
 
 \subsubsection{change Group}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asChangeGroup(ASMEMBERPVT *ppvt,const char *newAsgName);
-\end{verbatim}
+\end{lstlisting}
 \index{asChangeGroup}
 This routine changes the group for an existing member. The access rights of all clients of the member are recomputed.
 
@@ -730,10 +729,10 @@ This code is called by a channel access server.
 
 \subsubsection{add Client}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asAddClient(ASCLIENTPVT *ppvt, ASMEMBERPVT pvt, int asl,
                  const char *user, char *host);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asAddClient}
 This routine adds a client to an ASG member.
@@ -751,10 +750,10 @@ This routine returns \verb|S_asLib_asNotActive| without doing anything if access
 
 \subsubsection{change Client}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asChangeClient(ASCLIENTPVT ppvt, int asl,
                     const char *user, char *host);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asChangeClient}
 This routine changes one or more of the values \verb|asl|, \verb|user|, and \verb|host| for an existing client.
@@ -765,9 +764,9 @@ This routine returns \verb|S_asLib_asNotActive| without doing anything if access
 
 \subsubsection{remove Client}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asRemoveClient(ASCLIENTPVT *pvt);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asRemoveClient}
 This call removes a client.
@@ -776,9 +775,9 @@ This routine returns \verb|S_asLib_asNotActive| without doing anything if access
 
 \subsubsection{get Client Pvt}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void *asGetClientPvt(ASCLIENTPVT pvt); 
-\end{verbatim}
+\end{lstlisting}
 
 \index{asGetClientPvt}
 For each client, the access system keeps a pointer that can be used by the caller.
@@ -788,19 +787,19 @@ This routine returns \verb|NULL| if access security is not active.
 
 \subsubsection{put Client Pvt}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void asPutClientPvt(ASCLIENTPVT pvt, void *userPvt); 
-\end{verbatim}
+\end{lstlisting}
 
 \index{asPutClientPvt}
 This routine is used to set the pointer returned by \verb|asGetClientPvt|.
 
 \subsubsection{register Callback}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asRegisterClientCallback(ASCLIENTPVT pvt,
                               ASCLIENTCALLBACK pcallback);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asRegisterClientCallback}
 This routine registers a callback that will be called whenever the access privilege of the client changes.
@@ -809,18 +808,18 @@ This routine returns \verb|S_asLib_asNotActive| without doing anything if access
 
 \subsubsection{check Get}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asCheckGet(ASCLIENTPVT pvt); 
-\end{verbatim}
+\end{lstlisting}
 
 \index{asCheckGet}
 This routine, actually a macro, returns \verb|TRUE| if the client has read access rights.
 
 \subsubsection{check Put}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asCheckPut(ASCLIENTPVT pvt);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asCheckPut}
 This routine, actually a macro, returns \verb|TRUE| if the client has write access rights.
@@ -829,11 +828,11 @@ This routine, actually a macro, returns \verb|TRUE| if the client has write acce
 
 \index{asTrapWriteBefore}
 \index{asTrapWriteAfter}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void *asTrapWriteBefore(ASCLIENTPVT clientPvt,
     const char *userid, const char *hostid, void *serverSpecific);
 void *asTrapWriteAfter(void *trapPvt);
-\end{verbatim}
+\end{lstlisting}
 
 These routines must be called before and after any write performed for a client, to permit any registered listeners to be notified.
 The value returned by the call to \verb|asTrapWriteBefore| is the \verb|trapPvt| value that must subsequently be passed to the \verb|asTrapWriteAfter| routine.
@@ -843,9 +842,9 @@ The \verb|serverSpecific| argument is assigned to the \verb|serverSpecific| fiel
 
 \subsubsection{compute all Asg}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asComputeAllAsg(void);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asComputeAllAsg}
 This routine calls \verb|asComputeAsg| for each access security group.
@@ -854,9 +853,9 @@ This routine returns \verb|S_asLib_asNotActive| without doing anything if access
 
 \subsubsection{compute Asg}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asComputeAsg(ASG *pasg); 
-\end{verbatim}
+\end{lstlisting}
 
 \index{asComputeAsg}
 This routine calculates all \verb|CALC| entries for the \verb|ASG| and calls \verb|asCompute| for each client of each member of the specified access security group.
@@ -867,9 +866,9 @@ This routine returns \verb|S_asLib_asNotActive| without doing anything if access
 
 rights
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 long asCompute(ASCLIENTPVT pvt); 
-\end{verbatim}
+\end{lstlisting}
 
 \index{asCompute}
 This routine computes the access rights of a client.
@@ -881,12 +880,12 @@ This routine returns \verb|S_asLib_asNotActive| without doing anything if access
 
 \subsubsection{Dump}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int asDump(void (*member)(ASMEMBERPVT),
 void (*client)(ASCLIENTPVT),int verbose);
 int asDumpFP(FILE *fp,void (*member)(ASMEMBERPVT),
 void (*client)(ASCLIENTPVT),int verbose);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asDump}
 \index{asDumpFP}
@@ -901,10 +900,10 @@ If client callback is specified, it is called for each access security client.
 
 \subsubsection{Dump UAG}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int asDumpUag(char *uagname)
 int asDumpUagFP(FILE *fp,char *uagname)
-\end{verbatim}
+\end{lstlisting}
 
 \index{asDumpUag}
 \index{asDumpUagFP}
@@ -912,10 +911,10 @@ These routines display the specified \verb|UAG| or if \verb|uagname| is \verb|NU
 
 \subsubsection{Dump HAG}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int asDumpHag(char *hagname)
 int asDumpHagFP(FILE *fp,char *hagname)
-\end{verbatim}
+\end{lstlisting}
 
 \index{asDumpHag}
 \index{asDumpHagFP}
@@ -923,10 +922,10 @@ These routines display the specified \verb|UAG| or if \verb|uagname| is \verb|NU
 
 \subsubsection{Dump Rules}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int asDumpRules(char *asgname)
 int asDumpRulesFP(FILE *fp,char *asgname)
-\end{verbatim}
+\end{lstlisting}
 
 \index{asDumpRules}
 \index{asDumpRulesFP}
@@ -935,12 +934,12 @@ access security database.
 
 \subsubsection{Dump member}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int asDumpMem(char *asgname,
         void (*memcallback)(ASMEMBERPVT),int clients)
 int asDumpMemFP(FILE *fp,char *asgname,
         void (*memcallback)(ASMEMBERPVT),int clients)
-\end{verbatim}
+\end{lstlisting}
 
 \index{asDumpMem}
 \index{asDumpMemFP}
@@ -949,10 +948,10 @@ It also calls \verb|memcallback| for each member if this argument is not \verb|N
 
 \subsubsection{Dump hash table}
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int asDumpHash(void)
 int asDumpHash(FILE *fp,void)
-\end{verbatim}
+\end{lstlisting}
 
 \index{asDumpHash}
 \index{asDumpHashFP}
@@ -1001,9 +1000,9 @@ They contain the following routines:
 
 \subsubsection{Initialization}
 
-\begin{verbatim}
-int asSetFilename(char *acf)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+int asSetFilename(char *acf);
+\end{lstlisting}
 
 \index{asSetFilename}
 Calling this routine sets the filename of an access configuration file, but does not save the current working directory, so the use of an absolute pathname is strongly recommended.
@@ -1011,17 +1010,17 @@ The next call to \verb|asInit| uses this filename.
 \verb|asSetFilename| must be called before \verb|iocInit| otherwise access configuration is disabled.
 Is access security is disabled during \verb|iocInit| it will never be turned on.
 
-\begin{verbatim}
-int asSetSubstitutions(char *substitutions)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+int asSetSubstitutions(char *substitutions);
+\end{lstlisting}
 
 \index{asSetSubstitutions}
 This routine specifies macro substitutions for use while reading the configuration file.
 
-\begin{verbatim}
-int asInit()
-int asInitAsyn(ASDBCALLBACK *pcallback)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+int asInit();
+int asInitAsyn(ASDBCALLBACK *pcallback);
+\end{lstlisting}
 
 \index{asInit}
 \index{asInitAsyn}
@@ -1041,17 +1040,17 @@ It returns 0 if \verb|asInitTask| is successfully spawned.
 
 \subsubsection{Routines used by Channel Access Server}
 
-\begin{verbatim}
-int asDbGetAsl(void *paddr)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+int asDbGetAsl(void *paddr);
+\end{lstlisting}
 
 \index{asDbGetAsl}
 Get Access Security level for the field referenced by a database access structure.
 The argument is defined as a \verb|void*| so that both old and new database access can be used.
 
-\begin{verbatim}
-void * asDbGetMemberPvt(void *paddr)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+void * asDbGetMemberPvt(void *paddr);
+\end{lstlisting}
 
 \index{asDbGetMemberPvt}
 Get \verb|ASMEMBERPVT| for the field referenced by a database access structure.
@@ -1059,9 +1058,9 @@ The argument is defined as a \verb|void*| so that both old and new database acce
 
 \subsubsection{Routine to test asAddClient}
 
-\begin{verbatim}
-int astac(char *pname,char *user,char *host)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+int astac(char *pname,char *user,char *host);
+\end{lstlisting}
 
 \index{astac}
 This is a routine to test \verb|asAddClient|.
@@ -1071,10 +1070,10 @@ It simulates the calls that are made by Channel Access.
 
 These routines are provided so that a channel access client can force an ioc to load a new access configuration database.
 
-\begin{verbatim}
-long asSubInit(struct subRecord *prec,int pass)
-long asSubProcess(struct subRecord *prec)
-\end{verbatim}
+\begin{lstlisting}[language=C]
+long asSubInit(struct subRecord *prec,int pass);
+long asSubProcess(struct subRecord *prec);
+\end{lstlisting}
 
 \index{asSubInit}
 \index{asSubProcess}
@@ -1214,7 +1213,7 @@ The remainder of this section describes how a facility can use \verb|asTrapWrite
 \index{asTrapWriteListener}
 \index{asTrapWriteRegisterListener}
 \index{asTrapWriteUnregisterListener}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct asTrapWriteMessage {
     const char *userid;
     const char *hostid;
@@ -1228,7 +1227,7 @@ typedef void(*asTrapWriteListener)(asTrapWriteMessage *pmessage,int after);
 
 asTrapWriteId asTrapWriteRegisterListener(asTrapWriteListener func);
 void asTrapWriteUnregisterListener(asTrapWriteId id);
-\end{verbatim}
+\end{lstlisting}
 
 \index{asTrapWriteRegisterListener}
 \index{asTrapWriteListener}

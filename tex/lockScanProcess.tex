@@ -144,10 +144,10 @@ Further details on the algorithms used to implement locking operations can be fo
 
 \subsection{Single Record Locking}
 
-\begin{verbatim}
-dbScanLock(precord);
-dbScanUnlock(precord);
-\end{verbatim}
+\begin{lstlisting}[language=C]
+dbScanLock(struct dbCommon *precord);
+dbScanUnlock(struct dbCommon *precord);
+\end{lstlisting}
 
 \index{dbScanLock}
 \index{dbScanUnlock}
@@ -162,7 +162,7 @@ A thread must only lock one record at a time with \verb|dbScanLock|, except as d
 \index{dbLockerFree}
 \index{dbScanLockMany}
 \index{dbScanUnlockMany}
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 typedef struct dbLocker dbLocker;
 dbLocker *dbLockerAlloc(struct dbCommon **precs,
                         size_t nrecs,
@@ -171,7 +171,7 @@ dbLocker *dbLockerAlloc(struct dbCommon **precs,
 void dbLockerFree(dbLocker *);
 void dbScanLockMany(dbLocker*);
 void dbScanUnlockMany(dbLocker*);
-\end{verbatim}
+\end{lstlisting}
 
 It is possible to lock multiple records safely using \verb|dbScanLockMany|.
 First a \verb|dbLocker*| must be created from an array of record pointers.
@@ -196,18 +196,18 @@ The third argument to \verb|dbScanLockMany| (\verb|flag|) must be zero since no 
 Recursive locking is an attempt by a thread to lock a record which it has already locked.
 As for example:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* This is valid recursive locking */
 dbCommon *prec = ...;
 dbScanLock(prec);
 dbScanLock(prec);
 dbScanUnlock(prec);
 dbScanUnlock(prec);
-\end{verbatim}
+\end{lstlisting}
 
 But not:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* This is NOT valid */
 dbCommon *prec1 = ..., *prec2 = ...;
 assert(prec1!=prec2);
@@ -215,7 +215,7 @@ dbScanLock(prec1);
 dbScanLock(prec2); /* potential deadlock here! */
 dbScanUnlock(prec2);
 dbScanUnlock(prec1);
-\end{verbatim}
+\end{lstlisting}
 
 The rules for recursive locking with \verb|dbScanLock| and \verb|dbScanLockMany| are as follows:
 
@@ -228,7 +228,7 @@ A single thread can only hold one group lock (\verb|dbLocker*|) at a time.
 
 Therefore the following is valid.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 /* This is valid multi-locking */
 dbCommon *precs[2] = {prec1, prec2};
 dbLocker *L = dbLockerAlloc(precs, 2, 0);
@@ -239,7 +239,7 @@ dbScanLock(precs[1]);
 dbScanUnlock(precs[1]);
 dbScanUnlockMany(L);
 dbLockerFree(L);
-\end{verbatim}
+\end{lstlisting}
 
 \subsection{When to lock}
 

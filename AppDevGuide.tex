@@ -1,8 +1,4 @@
 \documentclass{book}
-\usepackage{html}
-
-%begin{latexonly}
-% -------- Preamble for pdflatex only --------
 
 \usepackage{times}
 
@@ -15,6 +11,11 @@
 \usepackage{hyperref}
 \hypersetup{colorlinks, bookmarksnumbered, linkcolor=blue}
 
+% code listings
+\usepackage{listings}
+\lstloadlanguages{C,C++,make,sh}
+\lstset{basicstyle=\ttfamily,xleftmargin=\leftmargini}
+
 % indent all code sections
 \usepackage{fancyvrb}
 \RecustomVerbatimEnvironment{verbatim}{Verbatim}{xleftmargin=\leftmargini}
@@ -22,15 +23,7 @@
 % mark overfull lines in the PDF output
 % enable this for debugging only
 %\overfullrule=1ex
-%end{latexonly}
 
-%begin{htmlonly}
-% -------- Preamble for latex2html only --------
-
-\htmlsetstyle[PRE.]{}{ margin-left=4em }
-%end{htmlonly}
-
-% -------- Preamble for both converters --------
 \usepackage{longtable}
 \usepackage{makeidx}
 \makeindex
@@ -53,11 +46,15 @@
 
 \begin{document}
 
-\addcontentsline{toc}{chapter}{EPICS Applications Developer's Guide}
+\thispagestyle{empty}
 \input{tex/titlepage.tex}
 
-\tableofcontents
-\addcontentsline{toc}{chapter}{Table of Contents}
+\ifx \HCode\UnDef
+  \cleardoublepage
+  \phantomsection
+  \addcontentsline{toc}{chapter}{Contents}
+  \tableofcontents
+\fi
 
 \input{tex/introduction.tex}
 \input{tex/gettingStarted.tex}
@@ -82,12 +79,11 @@
 \input{tex/registry.tex}
 \input{tex/databaseStructures.tex}
 
-\begin{latexonly}
-\cleardoublepage
-\phantomsection
-\end{latexonly}
-
-\addcontentsline{toc}{chapter}{Index}
+\ifx \HCode\UnDef
+  \cleardoublepage
+  \phantomsection
+  \addcontentsline{toc}{chapter}{Index}
+\fi
 \printindex
 
 \end{document}

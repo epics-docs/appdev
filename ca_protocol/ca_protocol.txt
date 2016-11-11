@@ -2,7 +2,8 @@
 =====================================
 :Email:     core-talk@aps.anl.gov
 :Date:      2014-08-27
-:Revision:  1.4.1
+:toc:
+:Revision:  1.5
 
 
 [[license]]
@@ -27,131 +28,118 @@ http://www.gnu.org/licenses/old-licenses/fdl-1.2.html[GNU Free Documentation Lic
 |1.4|2008-02-07|mailto:matej.sekoranja@cosylab.com[Matej Šekoranja]|all|Description of `CA_PROTO_READ` and `CA_PROTO_READ_SYNC` added.
 | |2008-02-07|mailto:klemen.zagar@cosylab.com[Klemen Žagar]|all|Released
 |1.4.1|2014-08-27|mailto:daniel.lauk@psi.ch[Daniel J. Lauk]|all|Transformed to link:http://asciidoc.org/[AsciiDoc] format. Recreated graphics.
+|1.5|2014-09|mailto:mdavidsaver@gmail.com[Michael Davidsaver]|all|Major revision to describe operation semantics
 |====================
 
 == Introduction
 
-This document is a specification of the EPICS Channel Access (CA) protocol.
-Structure of messages exchanged between communicating nodes is defined, as well as semantics of the exchange.
-The documentation is focused on version 4.11 of the CA protocol, which comes with EPICS 3.14, and later versions. 
+This document describes the EPICS Channel Access (CA) protocol as it is, and has been, implemented.
+It is also intended to act as a specification to allow the creation of new client and server implements.
+The focus is on versions >= 4.11 of the CA protocol, which used by EPICS Base 3.14.0 and later.
+No changes from protocol versions before 4.8 (EPICS Base 3.13.0) will be included in this document.
 
-=== Implementation Requirements
+For the benefit of those writing new clients and servers
+link:http://www.ietf.org/rfc/rfc2119.txt[RFC 2119:Key words for use in RFCs to Indicate Requirement Levels]
+are used.
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
-"SHOULD NOT", "RECOMMENDED", "MAY", "OPTIONAL" in this document are to be
-interpreted as described in link:http://www.ietf.org/rfc/rfc2119.txt[RFC 2119:
-Key words for use in RFCs to Indicate Requirement Levels]<<references,[3]>>.
+== Concepts
 
-An implementation is not compliant if it fails to satisfy one or more of the
-MUST or REQUIRED level requirements for the protocols it implements.
-An implementation that satisfies all the MUST or REQUIRED level and all the
-SHOULD level requirements for its protocols is said to be "unconditionally
-compliant"; one that satisfies all the MUST level requirements but not all the
-SHOULD level requirements for its protocols is said to be "conditionally
-compliant."
+=== Process Variables
 
-This document is based on the original CA protocol implementation that
-accompanies EPICS. Wherever the MAY, OPTIONAL or RECOMMENDED is specified, it
-implies that experience has shown such behaviour to improve either
-performance, portability or memory consumption.
+A Process Variable (PV) is the addressable unit of data accessible through the Channel Access protocol.
+Each PV has a unique name string and SHOULD be served by a single Channel Access server.
+Specifically, when searching for a PV, each client MUST NOT receive replies identifying more than one server.
 
-A protocol implementation that is not unconditionally compliant MUST NOT be
-used in any production environment or used with EPICS databases controlling
-physical devices.
+=== Virtual Circuit
 
+A TCP connection between a CA client and server is referred to as a Virtual Circuit.
 
-=== Basic Concepts
+Typically only one Circuit is opened between each client and server.
+However, a client MAY open more than one Circuit to the same server.
 
+==== TCP Message Flow
 
-==== Process Variables
+The following tree diagram illustrates the order in which normal (not error) CA messages can be sent on a TCP connection.
+Nodes with box borders are messages sent be the server, and oval borders are messages sent be the client.
+Nodes with a double border (eg. "Open Socket") are not themselves messages.
+Instead they indicate pre-conditions which must be meet before certain messages can be sent.
 
-A Process Variable (PV) is representation of a single value within an EPICS
-host.
+The message CA_ERROR may be sent by a server in response to any client message.
 
+image:camessage.png["Virtual Circuit message flow"]
 
-==== Channels
+=== Channels
 
-A channel is created whenever a PV is connected using CA.
+A Channel is the association between a particular Circuit and PV name.
 
-From implementation point of view, a channel is a connection, established over
-virtual circuit, between server and client through which a single PV is
-accessed. Both the client and the server will provide a way of uniquely
-identifying channels. These identifiers are explained in section
+At core, a Channel is a runtime allocated pair of integer identifiers (CID and SID) used in place
+of the PV name to avoid the overhead of string operations.
+Both client and server MUST maintain a list of the identifiers of all open Channels associated with a Circuit.
+
+The scope of these identifiers is a single Circuit.
+Identifiers from one Circuit MUST NOT be used on any other.
+Further more, the same identifier number may be used one two different Circuit in
+connection with two different PV names.
+
+A Channel's identifiers are explained in section
 <<message-identifiers,Message Identifiers>>.
 
+=== Monitors
 
-==== Monitors
-
-A monitor is created on a channel as a means of registering for asynchronous
-change notifications. CA protocol defines the subscription mechanism through
-which clients register for notifications. These changes will then be provided
-through monitor object or callback, depending on implementation and
-environment. Monitors may be filtered to receive only a subset of events,
+A monitor is created on a channel as a means of registering/subscribing for asynchronous
+change notifications (publications).
+Monitors may be filtered to receive only a subset of events (Event Mask),
 such as value or alarm changes. Several different monitors may be created for
 each channel.
 
+Clients SHOULD NOT create two monitors on the same channel with the same Event Mask.
 
-==== Channel Access Client Library
+=== Server Beacons
 
-A client library implements channel access protocol and exposes it through a
-programmer-friendly API. How the protocol and its mechanisms are implemented
-in the library depends on the programming language and no specific
-requirements are made with respect to this.
+Server beacons messages (<<ca-proto-rsrv-is-up,CA_PROTO_RSRV_IS_UP>>)
+MUST be periodically broadcast.
+Beacon messages contain the IP address and TCP port on which the server listens
+A sequential beacon ID is also included.
 
+When a server becomes active, it MUST immediately begin sending beacons with an increasing delay.
+An initial beacon interval of 0.02 seconds is RECOMMENDED.
+After each beacon is sent the interval SHOULD be increased up to a maximum interval.
+Doubling the interval is RECOMMENDED.
+The RECOMMENDED maximum interval is 15 seconds.
 
-==== Repeater
+As a server sends beacons it MUST increment the BeaconID field for each message sent.
 
-Repeater is a standalone process that allows several clients on one machine to
-share a predefined UDP port for recieving broadcast messages. Broadcast
-messages are sent without prior knowledge of which port the CA clients and
-hosts are listening at, so predefined port numbers are used. Since most
-network stack implementations do not allow multiple clients to listen on the
-same port, repeater is installed to listen on a single port, used for
-broadcast notifications. Repeater will fan-out unmodified incoming datagram
-messages to all the clients on the same host, that have previously registered
-with the repeater.
+CA clients MAY use a server's first beacon as a trigger to re-send previously unanswered
+<<ca-proto-search,CA_PROTO_SEARCH>> messages.
 
-Typically, a client library will attempt to register with the repeater during
-startup. If repeater cannot be found or is not available, the library will
-attempt to spawn a new repeater process. Repeater and client communicate using
-a minimal set of messages over UDP.
+While it was done historically, clients SHOULD NOT use Beacons to make timeout decisions for TCP Circuits.
+The <<ca-proto-echo,CA_PROTO_ECHO>> message should be used instead.
 
+Clients wishing to detect new servers should maintain a list of all servers
+along with the last BeaconID received, and the reception time.
+Servers SHOULD be removed from this list when no Beacon is received
+for some time (two beacon periods is RECOMMENDED).
 
-==== Server Beacons
+=== Repeater
 
-Server beacons are simple protocol messages that allow servers to broadcast
-their availability. These messages are sent out periodically to announce their
-presence. Additionally, these beacons are used to restore virtual circuits
-that have lost connections.
+See <<repeater-operation,Repeater Operation>>.
 
+=== Timeout Behavior
 
-==== Virtual Circuit
+CA clients typically SHOULD NOT automatically reconnect Circuits which have become unresponsive,
+instead CA clients SHOULD send a new <<ca-proto-search,CA_PROTO_SEARCH>> request.
 
-Channel Access protocol is designed to minimize resources used on both client
-and server. Virtual circuits minimize number of TCP connections used between
-clients and servers. Each client will have exactly one active and open TCP
-connection to an individual server, regardless of how many channels it
-accesses over it. This helps to ensure that servers do not get overwhelmed by
-too many connections.
+CA clients SHOULD on occasion re-send PV name searches which are not answered.
 
-The life-cycle of a virtual circuit is defined in section
-<<virtual-circuit-operation,Virtual Circuit Operation>>.
+Care must be taken to avoid excessive network load due to repeated lookups and connections.
+Clients are RECOMMENDED to implement an exponentially increasing (up to a maximum) interval when re-sending
+CA_PROTO_SEARCH messages for each PV.
 
+Clients are RECOMMENDED to implement a timeout before re-starting a search
+when a Channel is closed due to an Exception, or Channel creation fails with
+<<ca-proto-create-ch-fail,CA_PROTO_CREATE_CH_FAIL>> reply.
 
-==== Message Buffering
-
-When sending packets over network, channel access allows huge savings to be
-made by grouping individual messages in a single TCP packet. This is performed
-by maintaining per virtual circuit buffers that collect all outgoing messages.
-These buffers are flushed upon application's explicit request. This mechanism
-is independent of the TCP/IP stack, which maintains its own send queue and
-defines a maximum frame size. Messages sent over virtual circuit may be larger
-than this and will not always be aligned on frame boundary. Implementation
-should also be aware that messages received may not yet be available entirely
-or will be split over several TCP frames.
-
-
-==== Version compatibility
+=== Version compatibility
 
 Certain aspects of Channel Access protocol have changed between releases.
 In this document, Channel Access versions are identified using `CA_VXYY`,
@@ -166,108 +154,283 @@ versions up to and including its declared supported minor version number.
 `CA_V43`, denotes version 4.3 (major version 4, minor version 3).
 ====================
 
-Currently, all protocol definitions are assumed to have major version 4.
-Minor version ranges from 1 through 11.
+Channel Access protocol carries an implicit major version of 4.
+Minor version begin with 1.
+Minor version 0 is not a valid version.
+
+When a Virtual Circuit is created both client and server send
+their minor version numbers.
+The valid messages and semantics of the Circuit are determined
+by the lower of the two minor versions.
+
+A partial history of CA minor version changes:
+
+[options="header"]
+|===============
+|EPICS Base|CA Minor|Year|Reason
+|3.14.12   | 13  | 2010  |Dynamic array size in monitors
+|3.14.12   | 12  | 2010  |PV search over tcp
+|3.14.0-b2 | 11  | 2002  |large array?, circuit priority?
+|3.14.0-b2 | 10  | 2002  |Beacon counter???
+|3.14.0-b1 |  9  | 2001  |Large packet header
+|3.13.0-b10|  8  | 1997  |??
+|3.13.0-a5 |  7  | 1996  |Start of CVS history
+|===============
 
 
-==== Exceptions
 
-This document uses the concept of exceptions to refer to the mechanism of
-reporting errors that occur during command request execution. An exception
-defines reporting of error condition on the server. This can occur either due
-to client problem or due to some unexpected condition on the server (such as
-running out of resources). Exceptions are reported either within the command's
-response or using a specialized message. Actual form and method (response or
-asynchronously received message) depends on circumstances where the exception
-occurs. Individual commands and messages determine which method is used.
+=== Exceptions
+
+Channel Access protocol error messages (<<ca-proto-error,CA_PROTO_ERROR>>) are referred to as Exceptions.
+Exceptions are sent by a CA server to indicate its failure to process a client message.
+
+An Exception MAY be sent in response to any client message, including those
+which normally would not result in a reply.
+
+Exception messages carry the header of the client message which triggered the error.
+It is therefore always possible to associate an Exception with the request which triggered it.
+
+== Operation
+
+=== Overall Server Operation
+
+A CA server will maintain at least two sockets.
+
+A UDP socket bound to the CA port (def. 5064) MUST listen for PV name search request broadcasts.
+PV name search replies are sent as unicast messages to the source of the broadcast.
+This socket, or another UDP socket, SHOULD periodically send Beacons to the CA Beacon port (def. 5065).
+
+A TCP socket listening on an arbitrary port.  The exact port number is included in PV name search replies.
+This socket will be used to build Virtual Circuits.
+
+A CA server SHOULD NOT answer PV name search requests for itself unless a
+<<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>> for that PV from the same client can be expected to succeed.
+To do otherwise risks excessive load in a tight retry loop.
+
+=== Overall Client Operation
+
+A CA client SHOULD maintain a registration with a Repeater on the local system, (re)starting it as necessary.
+
+Clients will send PV name search messages and listen for replies.
+Typically a client will maintain a table of unanswered name searches and a cache of recent results
+in order avoid duplicate searches, and to process any replies.
+
+Once an affirmative search reply is received, a Virtual Circuit to the responder is opened if needed.
+If the client already has a circuit open to this server, it SHOULD be reused.
+When a Circuit is available, a Channel is created on it, then various get/put/monitor operations
+are performed on this Channel.
+
+=== Name Searching
+
+The process of finding the server which advertises a PV to a particular client can be carried out
+over UDP, or with >= `CA_V412` over a TCP connection.
+
+In either case each client SHOULD be pre-configured with a set of destinations to send queries.
+For UDP searching, this is a list of unicast or broadcast endpoints (IP and port).
+For TCP searching, this is a list of endpoints.
+
+It is RECOMMENDED that a default set of UDP endpoints be populated with the broadcast
+addresses of all network interfaces except the loopback.
+
+It is RECOMMENDED that, on client startup, Circuits be established to all endpoints in the TCP search list.
+
+Search results are transitory.  Subsequent searches MAY yield different results.
+Therefore queries SHOULD be re-tried unless an active Channel is already open.
+
+==== UDP search datagrams
+
+Several CA messages MAY be included in one UDP datagram.
+
+A datagram which includes <<ca-proto-search,CA_PROTO_SEARCH>> messages MUST
+begin with a <<ca-proto-version,CA_PROTO_VERSION>> message.
+
+For efficiency it is RECOMMENDED to include as many search requests as possible in each datagram,
+subject to datagram size limits.
+
+A CA server MUST NOT send a <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> in response
+to a UDP search request.
+
+==== TCP search
+
+<<ca-proto-search,CA_PROTO_SEARCH>> messages MUST NOT be sent on a Circuit unless a
+<<ca-proto-version,CA_PROTO_VERSION>> message has been received indicating >= `CA_V412`.
+
+When supported, <<ca-proto-search,CA_PROTO_SEARCH>> messages may be sent at any time the circuit is open.
+
+A CA server MAY send a <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> in response
+to a UDP search request if the DO_REPLY bit is set.
+
+Clients MAY ignore <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> messages.
+
+A <<ca-proto-not-found,CA_PROTO_NOT_FOUND>> message is not final.
+A subsequent search might yield a different result.
 
 
-=== Overall Operation
+=== Virtual Circuits
 
-This section is intended as a quick overview of channel access functionality
-and behaviour. For more information, please refer to
-link:http://www.aps.anl.gov/epics/base/R3-14/5-docs/CAref.html[Channel Access
-Reference Manual]<<references,[1]>>.
+==== Inactivity timeout
 
-The goal of channel access (CA) is to provide remote access to records and
-fields managed by <<glossary,IOC>>, including search and discovery of hosts
-and minimal flow contol. Protocol itself is designed to provide minimal
-overhead and maximize network throughput for transfer of large number of small
-data packets. Additionaly, implementation overhead of the protocol can be kept
-very small, to allow operation with limited resources.
+When a Circuit is created, both client and server MUST begin a countdown timer.
+When any traffic (including a <<ca-proto-echo,CA_PROTO_ECHO>> message) is received
+on the Circuit, this counter is reset to its initial value.
+If the timer reaches zero, the Circuit is closed.
 
-All commands and events in CA are encapsulated in predefined messages, which
-can be sent in one of three forms:
+Clients MUST send a <<ca-proto-echo,CA_PROTO_ECHO>> message
+before the countdown reaches zero.
+It is RECOMMENDED to send an echo message when the countdown reaches half its initial value.
 
-* As a *beacon*, which requires no confirmation. Used for host discovery and
-  keep-alive notification.
-* As a *request/response pair*. Most commands use this method.
-* As a *subscriber notification*, where the client registers with the host and
-  receives updates. Event notification uses this method to report value
-  changes.
+When a <<ca-proto-echo,CA_PROTO_ECHO>> message is received by the server, it MUST be
+immediately copied back to the client.
 
-Communication between server and client is performed by sending command
-messages over UDP and TCP. Client will use UDP to search for hosts and PVs,
-server will use them to notify its startup and shutdown. Once client requests
-a specific <<glossary,PV>> (by specifying its name), UDP message will be
-broadcast to either a subnet or a list of predefined addresses, and the server
-which hosts requested PV will respond.
+The RECOMMENDED value for the countdown timer is 30 seconds.
 
-Data exchange between client and server is performed over TCP. After locating
-the PV, the client will establish a TCP connection to the server. If more that
-one PV is found to be on the same server, client will use existing TCP
-connection. Reusable TCP connection between client and server is called
-<<glossary,Virtual circuit>>.
+==== Circuit Setup
 
-Once a virtual circuit is established or already available, channels can be
-created to PVs.
+When a Circuit is created, both client and server MUST send
+<<ca-proto-version,CA_PROTO_VERSION>> as their first message.
+This message SHOULD be sent immediately.
 
-Let's assume the following setup of PVs and hosts:
+Note for implementers.
+For EPICS Base before 3.14.12, RSRV did not immediately send a version message due to a buffering problem.
+Instead the version message was not sent until some other reply forced a flush of the send queue.
 
-* PV "A" is located on host IOC1.
-* PV "B" is located on host IOC2.
-* PV "C" does not exist on either host.
-* PV "D" is located both hosts, IOC1 and IOC2.
+In addition the client SHOULD send <<ca-proto-host-name,CA_PROTO_HOST_NAME>>
+and <<ca-proto-client-name,CA_PROTO_CLIENT_NAME>> messages.
+Once this is done, the Circuit is ready to create channels.
 
-A typical scenario would be similar to this:
+Note that the host and client name messages SHOULD NOT be (re)sent after the first channel is created.
+If the client or host name strings change, the circuit SHOULD be closed.
 
-. User application starts and initializes channel access client library.
-  During initialization, client library might spawn a new repeater process or
-  register with an existing one. If successful, the library is ready to start
-  using the channel access.
-. Application will start searching for PVs named "A", "B", "C" and "D".
-  Client will send UDP search packets with "A", "B", "C" and "D" PV names,
-  and wait for an application-specified amount of time.
-  To which network hosts (broadcast or specific IP) these packets are actually
-  sent depends on configuration of the client.
-. All hosts that receive this message will check their database and if they
-  know about any of these PV names, they will respond using UDP search
-  response message. Thus, IOC1 will respond with "A" and "D", whereas IOC2
-  will respond with "B" and "D".
-. For each search packet sent, the client will wait for a predefined amount of
-  time or until response is received.
-. In this case (assuming no packet loss in the network), the client will
-  establish a virtual circuit (TCP connection) to IOC1 and IOC2. PV "C" will
-  be assumed to be unavailable at this point and will be ignored.
-  Since "D" is located on both hosts, client will be unable to distinguish
-  between them. First response received will be considered to be proper answer
-  and any additional responses will be considered erroneous and reported to
-  user.
-. Once virtual circuits are established, client can access values of "A", "B"
-  and "D". From now on, all messages for either of the PVs will be sent via a
-  corresponding virtual circuit.
-. If virtual circuit looses TCP connection or the host disconnects, client
-  will notify application appropriately. Client will also listen for server
-  beacon messages (sent whenever IOC host starts), to be able to restore any
-  lost connections. Beacons are also used to detect when a host stops
-  responding.
-. Once the application is done using the channel access library, it will
-  gracefully close any open connections.
+If no host or client name messages are received a server MUST consider the client to be anonymous.
+It is RECOMMENDED that anonymous users not be granted rights for the Put operation.
 
+[[channel-creation]]
+==== Channel Creation
+
+Channel creation starts with a <<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>> request from the client.
+This message includes the PV name string, and a client selected <<cid-client-id,CID>>.
+
+If the server can not provide the named PV it replies with <<ca-proto-create-ch-fail,CA_PROTO_CREATE_CH_FAIL>>
+using the same CID.
+The server MUST NOT remember the CID of failed creation requests as clients MAY re-used them immediately.
+
+If the server can provide the named PV, it replies with <<ca-proto-access-rights,CA_PROTO_ACCESS_RIGHTS>>
+followed by a <<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>> reply.
+Further <<ca-proto-access-rights,CA_PROTO_ACCESS_RIGHTS>> messages MAY follow to reflect changes
+to access permissions.
+
+Note that the <<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>> reply includes the Channel's native
+DBR datatype and the maximum number of elements which can be retrieved/set by a get, put, or monitor
+operation.
+These attributes are fixed for the lifetime of the channel.
+
+The reply also contains the server selected <<sid-server-id,SID>> identifier.
+Together with the CID, these two identifier will be used to refer to the
+Channel in subsequent operations.
+
+The Channel remains active, and the identifiers valid, until a <<ca-proto-clear-channel,CA_PROTO_CLEAR_CHANNEL>> request
+is sent by a client and its reply received, until a <<ca-proto-server-disconn,CA_PROTO_SERVER_DISCONN>> message
+is received by a client, or if the circuit (TCP connection) is closed.
+
+After a server sends a CA_PROTO_CLEAR_CHANNEL reply or a CA_PROTO_SERVER_DISCONN message
+it MAY reuse the SID immediately.
+
+After a client receives a CA_PROTO_CLEAR_CHANNEL reply or a CA_PROTO_SERVER_DISCONN message
+it MAY reuse the CID immediately.
+
+Therefore after a client sends a CA_PROTO_CLEAR_CHANNEL request, or a sever sends a CA_PROTO_SERVER_DISCONN request,
+no further messages (including <<ca-proto-error,CA_PROTO_ERROR>>) should be sent for the closed channel.
+
+==== Put Operations
+
+A Operation to write data to a Channel begins with a <<ca-proto-write,CA_PROTO_WRITE>>
+or <<ca-proto-write-notify,CA_PROTO_WRITE_NOTIFY>> request.
+The difference between the two is that CA_PROTO_WRITE_NOTIFY gives a reply on success,
+while CA_PROTO_WRITE does not.
+
+The CA_PROTO_WRITE SHOULD be used when it is not important that all Put operations
+are executed.
+A server SHOULD make best effort to ensure that,
+when a burst of CA_PROTO_WRITE requests is received,
+that the last request is processed (others could be dropped).
+
+A CA_PROTO_WRITE_NOTIFY request indicates that the client intends to wait until the request is
+fulfilled before continuing.
+A server MUST reply to all CA_PROTO_WRITE_NOTIFY requests.
+A server SHOULD make best effort to fully process all CA_PROTO_WRITE_NOTIFY requests.
+
+Both request messages include a <<sid-server-id,SID>> to determine which Channel is being operated on.
+
+In addition, a client selected <<io-id,IOID>> is included.
+This identifier will be included in a CA_PROTO_WRITE_NOTIFY reply, as well as
+any CA_PROTO_ERROR exception message resulting from a Put request.
+
+==== Get Operation
+
+The present value of a Channel is queried with a <<ca-proto-read-notify,CA_PROTO_READ_NOTIFY>>
+request.
+
+A server MUST reply to all CA_PROTO_READ_NOTIFY requests.
+A server SHOULD make best effort to fully process all CA_PROTO_READ_NOTIFY requests.
+
+CA_PROTO_READ_NOTIFY messages include a <<sid-server-id,SID>> to determine which Channel is being operated on,
+as well as a client selected <<io-id,IOID>> which will be included in the reply.
+
+The IOID MUST be unique on the channel.
+
+==== Monitor Operation
+
+A Monitor operation is a persistent subscription which is initiated by a
+<<ca-proto-event-add,CA_PROTO_EVENT_ADD>> request and terminated with a
+<<ca-proto-event-cancel,CA_PROTO_EVENT_CANCEL>> request.
+
+Both CA_PROTO_EVENT_ADD and CA_PROTO_EVENT_CANCEL messages include a channel <<sid-server-id,SID>>
+as well as a client selected <<subscription-id,SubscriptionID>>.
+
+The SubscriptionID MUST be unique on the channel.
+
+When a subscription is created a server SHOULD immediately send a CA_PROTO_EVENT_ADD reply
+with the present value of the Channel if such a value is available.
+
+After a CA_PROTO_EVENT_CANCEL request is received, a server MUST send one final CA_PROTO_EVENT_ADD reply
+with a zero payload size.
+Before a CA_PROTO_EVENT_CANCEL request is received, a server MUST NOT send a CA_PROTO_EVENT_ADD reply
+with a zero payload size.
+
+==== Errors
+
+Any client message MAY result in an <<ca-proto-error,CA_PROTO_ERROR>> reply from a server.
+
+[[dynamic-array-size]]
+=== Data Count in Gets and Monitors
+
+Prior to `CA_V413`, the element count in a CA_PROTO_EVENT_ADD or CA_PROTO_READ_NOTIFY reply MUST be the same
+as given in the corresponding CA_PROTO_EVENT_ADD or CA_PROTO_READ_NOTIFY request.
+A request for zero elements MUST result in an ECA_BADCOUNT exception.
+If a server can not provide all of the elements requested, then it fills out the message
+body with null bytes.
+
+Beginning in `CA_V413`, a request for zero elements is valid.
+The element count in a reply is then the number of elements the server could provide (perhaps zero).
+
+The element count in a reply MUST NOT exceed the maximum element count on the channel.
+
+This dynamic array size feature creates a potential ambiguity in the protocol if the
+number of bytes in a CA_PROTO_EVENT_ADD reply is zero.
+
+Therefore it is RECOMMENDED that clients not create dynamic monitors for the plain DBR_* types.
+Clients needing to create such monitors are RECOMMENDED to promote the type
+to the corresponding DBR_STS_* (the extra meta-data can be ignored for internal processing).
+Then a zero element count has a non-zero body size.
+
+Note to implementers.
+RSRV will always give at least one element in CA_PROTO_EVENT_ADD replies.
+libca will silently ignore CA_PROTO_EVENT_ADD replies with zero size
+before a CA_PROTO_EVENT_CANCEL request is received.
 
 == Data Types
 
-This section defines all primitive data types employed by the CA, as well as
+This section defines all primitive data types employed by CA, as well as
 their C/C++ equivalents. These data types are referred to in the subsequent
 sections.
 
@@ -296,17 +459,13 @@ represented as `00 00 0C 49`.
 
 === Message Structure
 
-All channel access messages are composed of a *header*, followed by the
+All Channel Access messages are composed of a *header*, followed by the
 *payload*.
 
-Header is always present. Its structure is fixed, and contains predefined
-fields. At the very least, this will be command ID and payload size.
-Other header fields may carry command-specific meaning. If a field is not used
-within a certain message, its value must be 0 (`0x00`).
-
-Payload is a sequence of bytes, which are command and version dependent.
-Implementation is required to provide proper payload with respect to
-individual command specification.
+Header is always present.
+The command ID and payload size fields have a fixed meaning.
+Other header fields carry command-specific meaning.
+If a field is not used within a certain message, its value MUST be zeroed.
 
 Total size of an individual message is limited. With CA versions older than
 `CA_V49`, the maximum message size is limited to 16384 (`0x4000`) bytes.
@@ -321,7 +480,7 @@ values immediately following the header. Maximum message size is limited by
 32-bit unsigned integer representation, 4294967295 (`0xffffffff`).
 Maximum payload size is limited to 4294967255 (`0xffffffe7`).
 
-Extended message form should only be used if payload size actualy exceeds the
+For compatibility, extended message form should only be used if payload size exceeds the
 pre-`CA_V49` message size limit of 16368 bytes.
 
 
@@ -349,118 +508,120 @@ will use individual fields for purposes other than those described here. These
 variations are documented for each message individually. All of values in
 header are unsigned integers.
 
-The common header present in all messages is structured as follows:
+Generic header fields:
 
 [options="header"]
 |====================
 |Parameter|Type|Description
 |Command|`UINT16`|Identifier of the command this message requests. The meaning of other header fields and the payload depends on the command.
-|Payload Size|`UINT16`|Size of the payload (in bytes). Must not exceed `0x4000`. Value of `0xFFFF` indicates extended message.
+|Payload Size|`UINT16` or `UINT32`|Size of the payload (in bytes). MUST not exceed `0x4000` for UDP.
 |Data Type|`UINT16`|Identifier of the data type carried in the payload. Data types are defined in section <<payload-data-types,Payload Data Types>>.
-|Data Count|`UINT16`|Number of elements in the payload.
+|Data Count|`UINT16` or `UINT32`|Number of elements in the payload.
 |Parameter 1|`UINT32`|Command dependent parameter.
 |Parameter 2|`UINT32`|Command dependent parameter.
 |====================
-
-The extended message header (`CA_V49` and newer) has the following structure:
-
-[options="header"]
-|====================
-|Parameter|Type|Description
-|Command|`UINT16`|Identifier of the command this message requests. The meaning of other header fields and the payload depends on the command.
-|`0xFFFF`|`UINT16`|Extended message marker.
-|Data Type|`UINT16`|Identifier of the data type carried in the payload. Data types are defined in section <<payload-data-types,Payload Data Types>>.
-|`0x0000`|`UINT16`|Extended message marker.
-|Parameter 1|`UINT32`|Command dependent parameter.
-|Parameter 2|`UINT32`|Command dependent parameter.
-|Payload Size|`UINT32`|Size of the payload (in bytes).
-|Data Count|`UINT32`|Number of elements in the payload.
-|====================
-
 
 ==== Payload
 
 The structure of the payload depends on the type of the message. The size of
 the payload matches the `Payload Size` header field.
 
-[NOTE]
-If the payload size is not a multiple of 8, zero-padding must be performed to
-achieve 8-byte alignment.
+Message payloads MUST be padded to a length which is a multiple of 8 bytes.
+Zero padding is RECOMMENDED.
 
 
 [[message-identifiers]]
 === Message Identifiers
 
-Some fields in messages serve as identifiers, which must be properly handled
-by the implementation. These fields serve as identification tokens in
-asynchronous communication and must be unique within the context of the client
-library. Recommended scheme for allocating these values is to create them
+Some fields in messages serve as identifiers.
+These fields serve as identification tokens in within the context of the a circuit (TCP connection).
+The RECOMMENDED scheme for allocating these values is to create them
 sequentially starting at 0. All IDs are represented with `UINT32`.
 
-Overflow must be anticipated! Although it is unlikely that an application will
-need more than 2^32^ different channel IDs, such an overflow can occur with
-the IOID identifier (see below).
-
+Overflow of all identifiers MUST be handled!
+A long running applications might use more than 2**32 of some identifier type
+type (typically IOID).
 
 [[cid-client-id]]
 ==== CID - Client ID
 
-CID identifies individual channel within client library context. When a
-message requires the CID, this value must be passed. CID for a given channel
-may not change within the lifetime of the channel.
+A CID is the client selected identifier for a channel.
+A CID MUST be unique for a single Circuit.
 
-Recommended way of allocating CIDs is sequential 0-based indexing.
-First client library channel reference that is created has value of 0,
-second 1, etc. Duplicate CIDs within a single active instance of client
-library are not allowed.
+Clients MUST not send a request with a CID which is not associated with an
+<<channel-creation,active Channel>>.
 
-CID value is passed to the server when the channel is actually connected.
+Servers MUST ignore any request which does not include the CID of an active channel
+without closing the Circuit.
 
-Overflow should be potentially handled, since an application with expected
-long lifetime and frequent channel allocation and destruction might increase
-the index frequently. The best way to handle it is to ignore the problem until
-the first overflow. When that occurs, old CIDs should be no longer relevant,
-and CID value can be restarted from 0, but excluding any already used values.
-
+A CID is found in the Parameter 1 field of
+<<ca-proto-error,CA_PROTO_ERROR>>,
+<<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>>,
+<<ca-proto-access-rights,CA_PROTO_ACCESS_RIGHTS>>,
+<<ca-proto-create-ch-fail,CA_PROTO_CREATE_CH_FAIL>>,
+and <<ca-proto-server-disconn,CA_PROTO_SERVER_DISCONN>> messages.
+And in the Parameter 2 field of <<ca-proto-clear-channel,CA_PROTO_CLEAR_CHANNEL>> message.
 
 [[sid-server-id]]
 ==== SID - Server ID
 
-Performs the same function as CID, but is provided by the server when the
-channel is connected. SID of channel will never change, unless the channel
-represented by particular SID is removed from the server during runtime.
-In that case, the channel will be no longer available.
+A SID is the server selected identifier for a channel.
+A SID MUST be unique for a single Circuit.
 
-To handle overflows, the same method could be used as for the Client Channel
-ID.
+Servers MUST not send a request with a SID which is not associated with an
+<<channel-creation,active Channel>>.
 
+Clients MUST ignore any request which does not include the SID of an active channel
+without closing the Circuit.
+
+A SID is found in the Parameter 1 field of
+<<ca-proto-event-add,CA_PROTO_EVENT_ADD>>,
+<<ca-proto-event-cancel,CA_PROTO_EVENT_CANCEL>>,
+<<ca-proto-read-notify,CA_PROTO_READ_NOTIFY>>,
+<<ca-proto-write-notify,CA_PROTO_WRITE_NOTIFY>>,
+<<ca-proto-write,CA_PROTO_WRITE>>,
+<<ca-proto-clear-channel,CA_PROTO_CLEAR_CHANNEL>>,
+and <<ca-proto-create-chan,CA_PROTO_CREATE_CHAN>> (reply only)
+messages,
 
 [[subscription-id]]
 ==== Subscription ID
 
-When a subscription is created on a channel (monitor), a unique subscription
-ID must be provided. Client library will use this ID to identify different
-subscriptions on the same channel. This value will allow the client library to
-dispatch monitors appropriately.
+A SubscriptionID is the client selected identifier for a subscription.
+A CID MUST be unique for a single Circuit.
 
-Any subscription ID is only valid during the subscription's lifespan. After
-that, IDs may be reused.
+A SubscriptionID is found in the Parameter 2 field of
+<<ca-proto-event-add,CA_PROTO_EVENT_ADD>> and
+<<ca-proto-event-cancel,CA_PROTO_EVENT_CANCEL>> messages.
 
-
+[[io-id]]
 ==== IOID
 
-Unique ID is given to all read and write messages sent by the client library.
+An IOID is the client selected identifier for a Get or Put operation.
+An IOID MUST be unique for a single message type on a single Circuit.
 
-ID passed with the request will be returned in the matching response.
+It is possible though NOT RECOMMENDED to use the same IOID concurrently
+in a CA_PROTO_WRITE, a CA_PROTO_READ_NOTIFY, and a CA_PROTO_WRITE_NOTIFY request.
 
-Properly handling the wrapping of identifiers is vital to IOID, since an
-individual ID is used each time a request is made.
+An IOID is found in the Parameter 2 field of
+<<ca-proto-read-notify,CA_PROTO_READ_NOTIFY>>,
+<<ca-proto-write-notify,CA_PROTO_WRITE_NOTIFY>>,
+and <<ca-proto-write,CA_PROTO_WRITE>> messages.
 
+[[search-id]]
+==== Search ID
+
+A SearchID is a client selected identifier for a PV name search.
+A SearchID must be unique for each client endpoint sending requests.
+
+Due to the nature of UDP it is possible for datagrams to be duplicated.
+Several CA_PROTO_SEARCH messages with the same SearchID MAY be considered
+to be duplicates, and only one used.
 
 == Commands (TCP and UDP)
 
 The following commands are sent as either UDP datagrams or TCP messages.
-Some of the messages are also used within the context of a Virtual Circuit.
+Some of the messages are also used within the context of a Virtual Circuit (TCP connection).
 
 
 [[ca-proto-version]]
@@ -472,14 +633,9 @@ Command::
 ID::
     0 (`0x00`)
 Description::
-    Exchanges client and server protocol versions and desired circuit
-    priority. This is the first message sent when a new TCP (Virtual Circuit)
-    connection is established. Must be sent before any other exchange between
-    client, server and repeater. The communication is not strictly request
-    response, but will be perceived as such by the implementation.
-    When a new TCP connection is established by the client, `CA_PROTO_VERSION`
-    is sent. Likewise, the server will accept the connection and send the
-    response form back. Sent over UDP or TCP.
+    Exchanges client and server protocol versions and desired circuit priority.
+    MUST be the first message sent, by both client and server, when a new TCP (Virtual Circuit) connection is established.
+    It is also sent as the first message in UDP search messages.
 
 
 ==== Request
@@ -508,7 +664,8 @@ Description::
 * Priority indicates the server's dispatch scheduling priority which might be
   implemented by a circuit dedicated thread's scheduling priority in a
   preemptive scheduled OS.
-
+* Due to a buffering bug, RSRV implementing < `CA_V411` did not send `CA_PROTO_VERSION` immediately
+  on connection, but rather when some other other response triggers a buffer flush.
 
 ==== Response
 
@@ -555,8 +712,8 @@ Description::
 |Payload Size|>= 0|Padded size of channel name.
 |Reply|Reply Flag|<<search-reply-flag,Search Reply Flag>>, indicating whether failed search response should be returned.
 |Version|Version Number|Client minor protocol version number.
-|CID|Channel CID|Client allocated CID.
-|CID|Channel CID|Client allocated CID.
+|SearchID| |Client allocated Search identifer.
+|SearchID| |Client allocated Search identifer.
 |====================
 
 .Payload
@@ -570,8 +727,8 @@ Description::
 * Sent as a UDP datagram.
 * It is illegal to specify `DO_REPLY` flag whenever the message is sending as
   UDP datagram, regardless of whether broadcast or multicast is used.
-* CID will be allocated by the client before this message is sent.
-* CID field value is duplicated.
+* SearchID will be allocated by the client before this message is sent.
+* SearchID field value is duplicated.
 * Reply flag will be generally `DONT_REPLY` when searching using broadcast and
   `DO_REPLY` when searching using unicast. When `DO_REPLY` is set, server will
   send a <<ca-proto-not-found,`CA_PROTO_NOT_FOUND`>> message indicating it
@@ -588,8 +745,8 @@ Description::
 |Payload Size|8|Payload size is constant.
 |Data Type|Port number|TCP Port number of server that responded.
 |Data Count|0|Must be 0.
-|SID|`0xffffffff`|Temporary <<sid-server-id,SID>>.
-|CID|Same as request|Channel <<cid-client-id,CID>>.
+|SID or IP|`0xffffffff`|Temporary <<sid-server-id,SID>> (deprecated) or server IP address.
+|SearchID| |Client allocated Search identifer.
 |====================
 
 .Payload
@@ -601,15 +758,11 @@ Description::
 
 .Comments
 * Received as UDP datagram.
-* Client channel ID field value (CID) is copied from the request.
-* Port number of the server indicates on which port the server that replied
-  listens to. This is used in case more than one server share the same IP.
-* Server-assigned channel ID will have value of `0xffffffff`, since the SID is
-  not known at this time. Real value will be returned when channel is actually
-  created using `CA_CREATE_CHAN`.
-* In `CA_V411` the server's IP address is optionally returned in the CID field
-  of the header allowing a CA server to act as a directory service.
-  If not, then the CID field is set to `0xffffffff`.
+* Search ID field value (CID) is copied from the request.
+* Before `CA_V411` the SID/IP field will always have the value of `0xffffffff`
+  and the server IP address is assumed to be the senders IP.
+* Starting with `CA_V411` the server's IP address is encoded in the SID/IP
+  field if it differs from the sender's IP, or `0xffffffff` if it is the same.
 * The port number included in the header is the *TCP* port of the server.
   Two servers on the same host can share a UDP port number, but not a TCP port
   number. Therefore, the port the client needs to connect to in that situation
@@ -640,13 +793,13 @@ Description::
 |Reserved|0|Must be 0.
 |Reply Flag|`DO_REPLY`|Same reply flag as in request: always `DO_REPLY`.
 |Version|Same as request|Client minor protocol version number.
-|CID|Same as request|CID of the channel.
-|CID|Same as request|CID of the channel.
+|SearchID| |Client allocated Search identifer.
+|SearchID| |Client allocated Search identifer.
 |====================
 
 .Comments
-* Contents of the header are copied from the request.
-* CID fields are diplicated.
+* Contents of the header are identical to the request.
+* SearchID fields are diplicated.
 * Original request payload is not returned with the response.
 
 
@@ -720,8 +873,8 @@ Description::
 |Field|Value|Description
 |Command|13|Command identifier for `CA_PROTO_RSRV_IS_UP`.
 |Reserved|0|Must be 0.
+|Version|Version number|CA protocol version
 |Server port|>= 0|TCP Port the server is listening on.
-|Reserved|0|Must be 0.
 |BeaconID|Sequential integers|Sequential Beacon ID.
 |Address|0 or IP|May contain IP address of the server.
 |====================
@@ -1625,358 +1778,192 @@ Description::
 [[payload-data-types]]
 == Payload Data Types
 
-Channel access defines special structures to transferring data. Main reason is
-efficiency, since in many cases more than one value can be transferred. These
-types are organized in typed hierarchies with loose inheritance. There are
-seven basic data types: `DBR_STRING`, `DBR_SHORT`, `DBR_INT`, `DBR_FLOAT`,
-`DBR_ENUM`, `DBR_CHAR`, `DBR_LONG` and `DBR_DOUBLE`. Each of these types can
-be represented as an array, if the corresponding field in header indicates
-that.
+Channel access defines special structures to transferring data.
+These types are organized in typed hierarchies with loose inheritance.
+There are
+six basic data types: `DBR_STRING`, `DBR_SHORT`, `DBR_FLOAT`,
+`DBR_ENUM`, `DBR_CHAR`, `DBR_LONG` and `DBR_DOUBLE`.
+The type `DBR_INT` is present as an alias for `DBR_SHORT`.
+Each of these types can represent an array of elements.
 
-Additional to basic data types, structured types allow access to more than one
-value within the same record. These structures are status (STS), time stamp
-(TIME), graphic (GR) and control (CTRL). All these structures contain value as
+In addition to element values, some DBR types include meta-data.
+These types are status (DBR_STS_*), time stamp
+(DBR_TIME_*), graphic (DBR_GR_*) and control (DBR_CTRL_*). All these structures contain value as
 the last field.
 
-Status structure adds alarm severity. Time stamp structures extends the status
-structure by adding time stamp of the value. Graphic extends status structure
-by providing alarm limits, units and precision. Control structure extends
-graphic by adding control limits.
-
-Following is the list of all structures as transmitted over network.
-
-
-=== `DBR_STS_STRING`
-
-[horizontal]
-Type::
-    `DBR_STS_STRING`
-ID::
-    7 (`0x07`)
-Description::
-    `DBR_STS` structure for `STRING` type.
-
-
-=== `DBR_STS_SHORT`
-
-[horizontal]
-Type::
-    `DBR_STS_SHORT`
-ID::
-    8 (`0x08`)
-Description::
-    `DBR_STS` structure for `UINT16` type. May be referred to as
-    `DBR_STS_INT`.
-
-
-=== `DBR_STS_FLOAT`
-
-[horizontal]
-Type::
-    `DBR_STS_FLOAT`
-ID::
-    9 (`0x09`)
-Description::
-    `DBR_STS` structure for `FLOAT` type.
-
-
-=== `DBR_STS_ENUM`
-
-[horizontal]
-Type::
-    `DBR_STS_ENUM`
-ID::
-    10 (`0x0A`)
-Description::
-    `DBR_STS` structure for `ENUM` type.
-
-
-=== `DBR_STS_CHAR`
-
-[horizontal]
-Type::
-    `DBR_STS_CHAR`
-ID::
-    11 (`0x0B`)
-Description::
-    `DBR_STS` structure for `CHAR` type.
-
-
-=== `DBR_STS_LONG`
-
-[horizontal]
-Type::
-    `DBR_STS_LONG`
-ID::
-    12 (`0x0C`)
-Description::
-    `DBR_STS` structure for `LONG` type.
-
-
-=== `DBR_STS_DOUBLE`
-
-[horizontal]
-Type::
-    `DBR_STS_DOUBLE`
-ID::
-    13 (`0x0D`)
-Description::
-    `DBR_STS` structure for `LONG` type.
-
-
-=== `DBR_TIME_STRING`
-
-[horizontal]
-Type::
-    `DBR_TIME_STRING`
-ID::
-    14 (`0x0E`)
-Description::
-    `DBR_TIME` structure for `STRING` type.
-
-
-=== `DBR_TIME_SHORT`
-
-[horizontal]
-Type::
-    `DBR_TIME_SHORT`
-ID::
-    15 (`0x0F`)
-Description::
-    `DBR_TIME` structure for `UINT16` type. May be referred to as
-    `DBR_TIME_INT`.
-
-
-=== `DBR_TIME_FLOAT`
-
-[horizontal]
-Type::
-    `DBR_TIME_FLOAT`
-ID::
-    16 (`0x10`)
-Description::
-    `DBR_TIME` structure for `FLOAT` type.
-
-
-=== `DBR_TIME_ENUM`
-
-[horizontal]
-Type::
-    `DBR_TIME_ENUM`
-ID::
-    17 (`0x11`)
-Description::
-    `DBR_TIME` structure for `ENUM` type.
-
-
-=== `DBR_TIME_CHAR`
-
-[horizontal]
-Type::
-    `DBR_TIME_CHAR`
-ID::
-    18 (`0x12`)
-Description::
-    `DBR_TIME` structure for `CHAR` type.
-
-
-=== `DBR_TIME_LONG`
-
-[horizontal]
-Type::
-    `DBR_TIME_LONG`
-ID::
-    19 (`0x13`)
-Description::
-    `DBR_TIME` structure for `LONG` type.
-
-
-=== `DBR_TIME_DOUBLE`
-
-[horizontal]
-Type::
-    `DBR_TIME_DOUBLE`
-ID::
-    20 (`0x14`)
-Description::
-    `DBR_TIME` structure for `DOUBLE` type.
-
-
-=== `DBR_GR_STRING`
-
-[horizontal]
-Type::
-    `DBR_GR_STRING`
-ID::
-    21 (`0x15`)
-Description::
-    `DBR_GR` structure for `STRING` type.
-
-
-=== `DBR_GR_SHORT`
-
-[horizontal]
-Type::
-    `DBR_GR_SHORT`
-ID::
-    22 (`0x16`)
-Description::
-    `DBR_GR` structure for `SHORT` type.
-
-
-=== `DBR_GR_INT`
-
-[horizontal]
-Type::
-    `DBR_GR_INT`
-ID::
-    22 (`0x16`)
-Description::
-    `DBR_GR` structure for `INT` type.
-
-
-=== `DBR_GR_FLOAT`
-
-[horizontal]
-Type::
-    `DBR_GR_FLOAT`
-ID::
-    23 (`0x17`)
-Description::
-    `DBR_GR` structure for `FLOAT` type.
-
-
-=== `DBR_GR_ENUM`
-
-[horizontal]
-Type::
-    `DBR_GR_ENUM`
-ID::
-    24 (`0x18`)
-Description::
-    `DBR_GR` structure for `ENUM` type.
-
-
-=== `DBR_GR_CHAR`
-
-[horizontal]
-Type::
-    `DBR_GR_CHAR`
-ID::
-    25 (`0x19`)
-Description::
-    `DBR_GR` structure for `CHAR` type (`UINT8` representation).
-
-
-=== `DBR_GR_LONG`
-
-[horizontal]
-Type::
-    `DBR_GR_LONG`
-ID::
-    26 (`0x1A`)
-Description::
-    `DBR_GR` structure for `LONG` type (`INT32` representation).
-
-
-=== `DBR_GR_DOUBLE`
-
-[horizontal]
-Type::
-    `DBR_GR_DOUBLE`
-ID::
-    27 (`0x1B`)
-Description::
-    `DBR_GR` structure for `DOUBLE` type.
-
-
-=== `DBR_CTRL_STRING`
-
-[horizontal]
-Type::
-    `DBR_CTRL_STRING`
-ID::
-    28 (`0x1C`)
-Description::
-    `DBR_CTRL` structure for `STRING` type.
-
-
-=== `DBR_CTRL_SHORT`
-
-[horizontal]
-Type::
-    `DBR_CTRL_SHORT`
-ID::
-    29 (`0x1D`)
-Description::
-    `DBR_CTRL` structure for `SHORT` type.
-
-
-=== `DBR_CTRL_INT`
-
-[horizontal]
-Type::
-    `DBR_CTRL_INT`
-ID::
-    29 (`0x1D`)
-Description::
-    `DBR_CTRL` structure for `INT16` type.
-
-
-=== `DBR_CTRL_FLOAT`
-
-[horizontal]
-Type::
-    `DBR_CTRL_FLOAT`
-ID::
-    30 (`0x1E`)
-Description::
-    `DBR_CTRL` structure for `FLOAT` type.
-
-
-=== `DBR_CTRL_ENUM`
-
-[horizontal]
-Type::
-    `DBR_CTRL_ENUM`
-ID::
-    31 (`0x1F`)
-Description::
-    `DBR_CTRL` structure for `ENUM` type.
-
-
-=== `DBR_CTRL_CHAR`
-
-[horizontal]
-Type::
-    `DBR_CTRL_CHAR`
-ID::
-    32 (`0x20`)
-Description::
-    `DBR_CTRL` structure for `CHAR` type (`UINT8` representation).
-
-
-=== `DBR_CTRL_LONG`
-
-[horizontal]
-Type::
-    `DBR_CTRL_LONG`
-ID::
-    33 (`0x21`)
-Description::
-    `DBR_CTRL` structure for `INT32` type.
-
-
-=== `DBR_CTRL_DOUBLE`
-
-[horizontal]
-Type::
-    `DBR_CTRL_DOUBLE`
-ID::
-    34 (`0x22`)
-Description::
-    `DBR_CTRL` structure for `DOUBLE` type.
-
+All DBR data MUST be zero padded to ensure that message body length is a multiple of 8 bytes.
+Therefore, when receiving a message, it is necessary to use the DBR type and
+element count to determine the number of body bytes to use.
+Additional body bytes MUST be ignored.
+
+In addition to zero padding at the end of the message,
+some padding is placed between the meta-data and the value array.
+
+The following table lists the identifier, meta-data size, padding between meta-data and value, and value element sizes
+of each DBR type.
+
+.DBRs
+[options="header"]
+|====================
+|Name|ID|Meta size|padding|Element size
+|DBR_STRING|0|0|0|40
+|DBR_INT|1|0|0|2
+|DBR_SHORT|1|0|0|2
+|DBR_FLOAT|2|0|0|4
+|DBR_ENUM|3|0|0|2
+|DBR_CHAR|4|0|0|1
+|DBR_LONG|5|0|0|4
+|DBR_DOUBLE|6|0|0|8
+
+|DBR_STS_STRING|7|4|0|40
+|DBR_STS_INT|8|4|0|2
+|DBR_STS_SHORT|8|4|0|2
+|DBR_STS_FLOAT|9|4|0|4
+|DBR_STS_ENUM|10|4|0|2
+|DBR_STS_CHAR|11|4|1|1
+|DBR_STS_LONG|12|4|0|4
+|DBR_STS_DOUBLE|13|4|4|8
+
+|DBR_TIME_STRING|14|12|0|40
+|DBR_TIME_INT|15|12|2|2
+|DBR_TIME_SHORT|15|12|2|2
+|DBR_TIME_FLOAT|16|12|0|4
+|DBR_TIME_ENUM|17|12|2|2
+|DBR_TIME_CHAR|18|12|3|1
+|DBR_TIME_LONG|19|12|0|4
+|DBR_TIME_DOUBLE|20|12|4|8
+
+|DBR_GR_STRING|21|4|0|40
+|DBR_GR_INT|22|GR_INT|0|2
+|DBR_GR_SHORT|22|GR_INT|0|2
+|DBR_GR_FLOAT|23|GR_REAL|2|4
+|DBR_GR_ENUM|24|GR_ENUM|0|2
+|DBR_GR_CHAR|25|GR_INT|1|1
+|DBR_GR_LONG|26|GR_INT|0|4
+|DBR_GR_DOUBLE|27|GR_REAL|0|8
+
+|DBR_CTRL_STRING|28|4|0|40
+|DBR_CTRL_INT|29|CTRL_INT|0|2
+|DBR_CTRL_SHORT|29|CTRL_INT|0|2
+|DBR_CTRL_FLOAT|30|CTRL_REAL|0|2
+|DBR_CTRL_ENUM|31|GR_ENUM|0|2
+|DBR_CTRL_CHAR|32|CTRL_INT|1|1
+|DBR_CTRL_LONG|33|CTRL_INT|0|4
+|DBR_CTRL_DOUBLE|34|CTRL_REAL|0|8
+
+|DBR_PUT_ACKT|35|?|?|2
+|DBR_PUT_ACKS|36|?|?|2
+|DBR_STSACK_STRING|37|?|?|40
+|DBR_CLASS_NAME|38|?|?|40
+|====================
+
+
+=== DBR_STS_* meta-data
+
+Alarm meta-data.  Length: 4 bytes
+
+    struct metaSTS {
+        epicsInt16 status;
+        epicsInt16 severity;
+    };
+
+=== DBR_TIME_* meta-data
+
+Alarm and time stamp meta-data.  Length: 12 bytes
+
+    struct metaTIME {
+        epicsInt16 status;
+        epicsInt16 severity;
+        epicsInt32 secondsSinceEpoch;
+        epicsUInt32 nanoSeconds;
+    };
+
+Note that the EPICS Epoch is 1990-01-01T00:00:00Z.
+This is 631152000 seconds after the POSIX Epoch of 1970-01-01T00:00:00Z.
+
+=== DBR_GR_SHORT meta-data
+
+Alarm and integer display meta-data (no timestamp).  Length: ?? bytes
+
+    struct metaGR_INT {
+        epicsInt16 status;
+        epicsInt16 severity;
+        char units[8];
+        epicsInt16 upper_display_limit;
+        epicsInt16 lower_display_limit;
+        epicsInt16 upper_alarm_limit;
+        epicsInt16 upper_warning_limit;
+        epicsInt16 lower_warning_limit;
+        epicsInt16 lower_alarm_limit;
+    };
+
+=== DBR_GR_CHAR meta-data
+
+Alarm and integer display meta-data (no timestamp).  Length: ?? bytes
+
+    struct metaGR_INT {
+        epicsInt16 status;
+        epicsInt16 severity;
+        char units[8];
+        epicsInt8 upper_display_limit;
+        epicsInt8 lower_display_limit;
+        epicsInt8 upper_alarm_limit;
+        epicsInt8 upper_warning_limit;
+        epicsInt8 lower_warning_limit;
+        epicsInt8 lower_alarm_limit;
+    };
+
+=== DBR_GR_FLOAT meta-data
+
+Alarm and floating point display meta-data (no timestamp).  Length: ?? bytes
+
+    struct metaGR_FLOAT {
+        epicsInt16 status;
+        epicsInt16 severity;
+        epicsInt16 precision;
+        epicsInt16 padding;
+        char units[8];
+        epicsFloat32 upper_display_limit;
+        epicsFloat32 lower_display_limit;
+        epicsFloat32 upper_alarm_limit;
+        epicsFloat32 upper_warning_limit;
+        epicsFloat32 lower_warning_limit;
+        epicsFloat32 lower_alarm_limit;
+    };
+
+=== DBR_GR_DOUBLE meta-data
+
+Alarm and floating point display meta-data (no timestamp).  Length: ?? bytes
+
+    struct metaGR_FLOAT {
+        epicsInt16 status;
+        epicsInt16 severity;
+        epicsInt16 precision;
+        epicsInt16 padding;
+        char units[8];
+        epicsFloat64 upper_display_limit;
+        epicsFloat64 lower_display_limit;
+        epicsFloat64 upper_alarm_limit;
+        epicsFloat64 upper_warning_limit;
+        epicsFloat64 lower_warning_limit;
+        epicsFloat64 lower_alarm_limit;
+    };
+
+=== GR_ENUM and CTRL_ENUM meta-data
+
+Alarm and enumerated display meta-data (no timestamp).  Length: ?? bytes
+
+    struct metaGR_ENUM {
+        epicsInt16 status;
+        epicsInt16 severity;
+        epicsInt16 number_of_string_used;
+        char strings[16][26];
+    };
+
+The `strings` field is an array of 16 string of 26 characters.
+The `number_of_string_used` gives the number of entries in the `strings`
+field which are valid.
+Additional `strings` should be ignored, even if they contain non-null bytes.
 
 == Constants
 
@@ -2037,7 +2024,12 @@ library. Different values can be combined using logical OR operation.
   value of the channel changes.
 * `DBE_PROPERTY` - value 8 (`0x08`) - Property events are reported when some
   metadata value associated with the channel changes.
+  (Introduced in EPICS Base 3.14.11).
 
+.Notes
+
+* CA Servers SHOULD ignore unknown monitor mask bits.
+* Older PCAS versions will respond to unknown bits with `ECA_BADMASK`.
 
 [[search-reply-flag]]
 === Search Reply Flag
@@ -2072,6 +2064,8 @@ As a reference, the following values are valid.
 * 2 - Write access only
 * 3 - Read and write access
 
+Servers MUST set undefined bits to zero.
+Clients MUST ignore undefined bits in this field.
 
 == Example message
 
@@ -2107,307 +2101,42 @@ Server would respond with success and return requested value with individual
     8      6      4      2      0      0      0     0
 ----
 
-[[virtual-circuit-operation]]
-== Virtual Circuit Operation
 
-image:virtual-circuit.png[Virtual Circuit Schematic]
-
-
-=== Establishing virtual circuit
-
-Virtual circuit is a TCP connection between a client and a server. Each
-virtual circuit has an associated priority, which can be used by server to
-prioritize requests depending on current load. An independent circuit for
-each priority level selected by the client might be used because it allows
-for preemptive prioritized dispatch scheduling in the server when the OS
-supports that, and also allows specifying the networks scheduling priority
-when the router and or LAN support that. Regardless of how many channels are
-handled by either client or server, each client-server pair will be connected
-with exactly one TCP connection for each priority level. This level is
-specified when creating a virtual circuit.
-
-When establishing a virtual circuit, a simple handshake will be performed.
-Client will open a TCP connection to the server. After that, it sends
-<<ca-proto-version,`CA_PROTO_VERSION`>>,
-<<ca-proto-client-name,`CA_PROTO_CLIENT_NAME`>> and
-<<ca-proto-host-name,`CA_PROTO_HOST_NAME`>> messages.
-If server accepts all the supplied parameters and the client and host are
-permitted to connect, the server will respond with
-<<ca-proto-version,`CA_PROTO_VERSION`>>.
-After that, client may start sending requests.
-
-Virtual circuit will remain active as long as there is at least one channel
-active. If the TCP connection is lost, all channels using this circuit must be
-notified.
-
-
-=== Basic mode of operation
-
-In most basic role, the client will send requests to the server and await one
-or more responses, or in some special cases, no response will be expected.
-For each type of request, one of three events will occur:
-
-* Matching response will be received
-* Error response will be received by client indicating either user or client error
-* The client will receive no response, and one was expected.
-* Network failure occurs
-
-When a matching response is received, the operation has completed
-successfully. Any result returned will report any applicable return
-information. Client library will then notify the client about completion.
-
-If a request fails and server could handle this failure,
-<<ca-proto-error,`CA_PROTO_ERROR`>> response will be received or error code is
-received in response, depending on the request sent. This response contains
-original request header, error code and text description of error.
-
-Although servers are designed to always return a response, in some cases this
-will not occur. An unlikely case is that a server has failed or stopped
-responding. A more common case is broadcast search, where no replies are sent
-to search messages. The later case is designed to not overload the network by
-sending failure notifications. This however does not allow client library to
-determine, whether a search has failed, or the server load is simply too high
-and the response will arrive later. In this case, client library may assume
-that search yielded no results and notify on search failure. Regardless of
-this, should any such response arrive late, the client must be notified.
-
-In case of network failure, two situations should be anticipated. One is TCP
-connection loss for a virtual circuit. Virtual circuit has mechanisms for
-dealing with such case and should attempt to restore the connection itself.
-Repeater has no such mechanisms, since it depends on reliability of UDP
-protocol. There will be in most cases no way for repeater to determine,
-whether the packets sent actually arrive at destination. Repeater can however
-verify the clients registered with it, by attempting to bind to their port.
-If binding succeeds, the client no longer exists. Alternate way is using
-connected UDP sockets and checking ICMP destination unreachable error.
-
-
-=== Detecting virtual circuit unresponsiveness
-
-During virtual circuit life-time, the circuit may become unresponsive.
-Since this is tightly related to network availability and server load,
-determining actual cause for unresponsiveness is difficult. Basic criteria on
-which unresponsiveness should be determined are:
-
-* No beacon received from server in expected time period
-* No response received from server for a predetermined ammount of time
-  (usually 30 seconds)
-* Server does not immediatelly respond to <<ca-proto-echo,`CA_PROTO_ECHO`>>
-
-Behaviour of virtual circuit implementation under such conditions is
-undefined. Experience has shown however, that virtual circuit should not be
-disconnected when it becomes unresponsive, since this negatively impacts
-network performance under load.
-
-
-=== Channel life-cycle
-
-image:connection-states.png[Connection States]
-
-A channel discussed here is based on two levels. One is channel as seen from
-client application, the other is channel implementation in client library.
-This difference will be pointed out where applicable.
-
-When a channel is created by client application, it is initialized in
-_NEVER_CONN_ state. This indicates that channel is currently being connected
-for the first time. If connection process fails, channel moves into _FAILED_
-state and is not usable. Connection proccess within the client library will
-attempt to connect the channel repeatedly. Intervals between consecutive
-attempts should be increased, before finally giving up and determining the
-channel cannot be connected and signaling _FAILED_ state. A total number of
-attempts can be on the order of 100.
-
-When connection is established, the channel will signal to client with
-_CONN_UP_ event and changing its state to connected.
-
-Should the virtual circuit connection be lost, _CONN_DOWN_ event will change
-channel state to disconnected. Whenever virtual circuit is reconnected, the
-channel state is restored to connected. Note that reconnection process follows
-the same rules as initial process. It is also possible, that the PV will move
-between the servers, but client application should not be aware of such
-internal changes to channel.
-
-Once client application is done using the channel, it will be closed and its
-state moved changed to _CLOSED_. After that, this channel can no longer be
-used.
-
-Detailed description of channel operations is outlined below.
-
-
-=== Connecting a Channel
-
-Connection of a channel is a two phase process. First, server that hosts
-channel with a given name must be located. Second, client and server must both
-register a connection.
-
-Before connection, client library allocates CID identifier that will be used
-to reference new channel. Next it sends <<ca-proto-search,`CA_PROTO_SEARCH`>>
-with channel name request via broadcast and/or to address list. Each server
-that receives such message checks to see if it knows about this name. If it
-does, response to <<ca-proto-search,`CA_PROTO_SEARCH`>> is sent back to
-client. If not, the server checks if reply field of request is `DO_REPLY` and
-responds with <<ca-proto-not-found,`CA_PROTO_NOT_FOUND`>>, otherwise does
-nothing.
-
-Client library may receive more than one response. In this case, first
-response should be used and others rejected. The cause of multiple responses
-is same PV hosted on multiple different hosts. Client or server has no method
-of knowing which PV is 'right'. Multiple responses should be reported by the
-client to the application or user.
-
-After extracting server address and port, client library checks to see if this
-server is already known and connected via virtual circuit. If not, virtual
-circuit is established. Any requests sent through this channel will use this
-circuit.
-
-For this it sends <<ca-proto-create-chan,`CA_PROTO_CREATE_CHAN`>> request with
-channels CID and channel name. Server will respond with
-<<ca-proto-create-chan,`CA_PROTO_CREATE_CHAN`>> response which will provide
-channel type, data count and server identifier SID. In case the channel could
-not be created, error message will be returned.
-
-Having initialized both CID and SID and registered the channel with the
-server, this channel is ready for use. Client library should store these
-values for further use.
-
-
-=== Read and Write operations
-
-Read and write operations require the channel to be properly initialized and
-connected and its virtual circuit to be active. These operations use
-<<ca-proto-read-notify,`CA_PROTO_READ_NOTIFY`>> and
-<<ca-proto-write-notify,`CA_PROTO_WRITE_NOTIFY`>> messages.
-
-To read a value from a channel client library will create a
-<<ca-proto-read-notify,`CA_PROTO_READ_NOTIFY`>> request. This request will
-contain desired data type and data count parameters which may differ from
-channels native type as obtained during connect. Additionally, IOID is stored
-in request to provide unique identification. Channel that is used will be
-identified by SID that was obtained during channel creation. No payload is
-sent with request.
-
-After server processes the message reponse is either valid
-<<ca-proto-read-notify,`CA_PROTO_READ_NOTIFY`>> response or
-<<ca-proto-error,`CA_PROTO_ERROR`>> to indicate error. In case of success,
-response contains same field values as request, but has additional payload.
-This payload is formatted as requested data type with desired number of
-elements.
-
-Write operation is performed identically with payload roles reversed. Here the
-request will contain payload with DBR formatted value to write and response
-will have no payload.
-
-
-=== Subscriptions and Monitors
-
-Client creates monitors by registering a subscription on a channel. This
-causes server to notify subscribers of value changes.
-
-Subscriptions are created by first allocating unique Subscription ID. This
-identifier is used to uniquely identify various subscriptions. Next,
-<<ca-proto-event-add,`CA_PROTO_EVENT_ADD`>> request is created using SID and
-Subscription ID. Data type and data count indicate desired value format in
-response. Additional information is provided in payload as specified in
-<<ca-proto-event-add,`CA_PROTO_EVENT_ADD`>> reference.
-
-First <<ca-proto-event-add,`CA_PROTO_EVENT_ADD`>> response is received
-immediately to confirm successful subscription. If error occurs,
-<<ca-proto-error,`CA_PROTO_ERROR`>> response is received.
-
-Responses arrive asynchronously until client cancels the subscription using
-<<ca-proto-event-add,`CA_PROTO_EVENT_ADD`>> response and payload containing
-DBR formatted value. If server is shutdown during this time, events will no
-longer arrive, but the subscription will not be cancelled. Once the server is
-restarted, client library will reestablish the subscription silently without
-notifying client application.
-
-Subscription is cancelled by sending
-<<ca-proto-event-cancel,`CA_PROTO_EVENT_CANCEL`>> request with relevant
-parameters identical to those in original
-<<ca-proto-event-add,`CA_PROTO_EVENT_ADD`>> request that created the
-subscription. Successful cancelation is confirmed by
-<<ca-proto-event-add,`CA_PROTO_EVENT_ADD`>> response without payload.
-
-Cancelling the subscription while the server is down should be handled by
-cancelling the subscription locally and not reestablishing it once the server
-is up again.
-
-
-=== Connection events
-
-If a virtual circuit is disconnected (server goes down or stops sending
-beacons), any connected channels that use this circuit should be notified.
-There is no direct way to reconnect the channel from client side, but this
-will be done by the library. Once the circuit is reestablished, client
-application is notified of status change for all channels. Even if a channel
-is reported to be disconnect as a result of virtual circuit failure, the
-channel is not closed. The only way a channel connection is actually closed
-is by explicitly closing it using
-<<ca-proto-clear-channel,`CA_PROTO_CLEAR_CHANNEL`>> thereby invalidating its
-resources.
-
-
-=== Closing the channel
-
-Channel is closed by sending
-<<ca-proto-clear-channel,`CA_PROTO_CLEAR_CHANNEL`>> request.
-Regardless of whether response confirmes closing or reports an error, CID and
-SID associated with the channel are no longer valid. Any resources still
-available to the client application are considered invalid. A channel that was
-cleared may no longer be reconnected.
-
-
+[[repeater-operation]]
 == Repeater Operation
 
-image:repeater.png[Repeater Schematic]
-
-
-=== Role
-
-Simple demonstration of repeater operation. A repeater will be used both on
-client and server side to forward incoming UDP requests to multiple clients
-and/or server on same host. Each host or client will then respond on its own.
-
-Since role of the repeater is related to host, not the client, its
-implementation must be independent from individual client instance or process.
-Repeater must not stop operation until all clients depending on it registered
-with it have shut down.
-
+A repeater MUST be used by clients to collect <<ca-proto-rsrv-is-up,CA_PROTO_RSRV_IS_UP>>
+messages.
+Each client host will have one repeater.
 
 === Startup
 
-Each client must check for presence of repeater on startup, before any access
-to EPICS hosts is made. This check is made by attempting to bind to
-`CA_REPEATER_PORT`. If binding fails, the client may assume the repeater is
-already running and may attempt to register. This is done by sending
-`CA_REPEATER_REGISTER` datagram to `CA_REPEATER_PORT`. If repeater is already
-active, it will respond with `CA_REPEATER_CONFIRM` datagram back to client,
-otherwise the client can assume, the repeater is invalid, the process bound to
-the port is not even a repeater or that some unknown error occured. In this
-case, client will spawn new repeater and attempt registration again. Attempt
-to detect the repeater and register should be made several times with some
-reasonable delay to avoid any transient unresponsiveness that might occur.
+Each client MUST test for presence of repeater on startup, before any access to EPICS hosts is made.
+This check is made by attempting to bind to `CA_REPEATER_PORT`.
+If binding fails, the client may assume the repeater is already running and may attempt to register.
+This is done by sending `CA_REPEATER_REGISTER` datagram to `CA_REPEATER_PORT`.
+If repeater is already active, it will respond with `CA_REPEATER_CONFIRM` datagram back to client.
+At this point the registration is complete, and the repeater will begin forwarding messages to the client.
 
-After the client has received registration confirmation from the repeater, it
-should keep listening for messages from the repeater. Any broadcasts sent by
-servers will be received by the repeater and forwarded to registered clients.
+If binding succeeds, then this client process MUST either close the bound socket (and report at error)
+or begin functioning as a repeater.
 
+If an error is encountered with sending `CA_REPEATER_REGISTER`,
+the the binding test SHOULD be repeated after a short timeout (1 second is RECOMMENDED).
 
 === Client detection
 
-The repeater tests to see if its clients exist by periodically attempting to
+The repeater SHOULD test to see if its clients exist by periodically attempting to
 bind to their ports. If unsuccessful when attempting to bind to the client's
 port, then the repeater concludes that the client no longer exists.
-A technique using connected UDP sockets and ICMP destination unreachable can
+A technique using connected UDP sockets and ICMP destination unreachable MAY
 also used. If a client is determined to no longer be present then the repeater
 un-registers that client and no longer sends messages to it.
 
 
 === Operation
 
-Each message, the repeater receives, must be forwarded to local clients, to 
-the address provided during registration. No assumption should be made about 
-existence or state of clients.
+Each message the repeater receives MUST be forwarded to all registered clients.
 
 
 === Shutdown
@@ -2415,25 +2144,42 @@ existence or state of clients.
 Repeater should not shutdown on its own, if it does, there should be no active 
 clients registered with it.
 
+[[search-algo]]
+== Searching Strategy
 
-== Server Beacons
+This section describes one possible strategy for handling <<ca-proto-search,CA_PROTO_SEARCH>> messages by a CA client.
+It is designed to limit the maximum rate at which search messages are sent to avoid overwhelming servers.
 
-Each EPICS server will send beacons periodically to report it is still active. 
-Beacon messages will contain server's IP and port, as well as sequential 
-beacon ID. Beacons will be broadcast and sent to servers address list.
+For each outstanding search request the following information is kept.
 
-When a server becomes active, it will immediately start sending beacons with 
-an increasing delay. Time between beacons will start at 0.02 seconds. After 
-each beacon is sent, this time is doubled. Maximum delay between beacons will 
-be limited by server specified parameter, but is commonly 15 seconds.
+    struct searchPV {
+        const char *pvname;
+        epicsTimeStamp nextSend;
+        double intervalMult;
+    };
 
-If a beacon is not received within expexted time, virtual circuits connected 
-to this server should be notified and virtual circuit must handle this 
-situation.
+A priority queue should be maintained which is sorted in order of increasing `nextSend`.
 
+When a new search request is made, a new `searchPV` is added to the queue with `initialMult` at a minimum (eg. 0.05 sec.)
+and `nextSend` at the present time plus `nextSend`.
+
+When a search request is canceled it should be removed from the queue.
+
+A task should run whenever the first entry expires (`nextSend` before the present time).
+This task should extract some expired entries up to a maximum limit (eg. enough for 4 UDP packets).
+
+Search messages are then sent for these entries and their `intervalMult` is increased (eg. doubled),
+their `nextSend` is set to the present time plus `nextSend`, and they are re-added to the queue.
+
+The task should then wait for the minimum search interval (eg. 0.05 sec.) before checking the queue again.
+This prevents a flood of search messages.
+
+The combination of the minimum interval between sending search messages,
+and the limit on the maximum number of messages sent in each interval,
+acts to limit to total network bandwidth consumed by searches.
 
 [[return-codes]]
-== Return Codes
+== ECA Error/Status Codes
 
 This section covers return codes and exceptions that can occur during CA 
 command processing. In general, exceptions will be used to report various 
@@ -2442,86 +2188,100 @@ that can occur, where as exceptions are actually reported. Apart from
 exceptions that occur on server or due to network transport, additional error 
 conditions may be reported on the client side as local exceptions.
 
-Implementation is required to handle all return codes. Local exceptions should 
-be thrown whenever implied, but only if such exception is reasonable within 
-the scope of implementation. Certain local exceptions that deal with state 
-dependent exception must always be provided.
-
-*Naming convention:* All return codes defined within the scope of CA are 
-listed with all capitals, with underscore character (`_`) replacing spaces. 
-Additionally, all exception names are prefixed with string `ECA_`.
-
-Return codes are represented as `UINT16`. The lowest 3 least bits 
-indicate severity, the higher 13 bits are a return code identifier.
+Return codes are represented as `UINT16`.
+The 3 least significant bits indicate severity, remaining 13 bits are return code ID.
 
 Return codes are communicated in the protocol by the `CA_PROTO_READ_NOTIFY`, 
 `CA_PROTO_WRITE_NOTIFY`, monitor subscription responses, and the 
 `CA_PROTO_ERROR` responses.
 
+Severity codes
+
+[options="header"]
+|====================
+|Code|Value|Description
+|`CA_K_SUCCESS`|1|Successful (not an error)
+|`CA_K_WARNING`|0|Not successful
+|`CA_K_INFO`|3|Informational (not an error)
+|`CA_K_ERROR`|2|Recoverable failure
+|`CA_K_SEVERE`|4|None recoverable failure
+|====================
+
+Presently defined error conditions
+
 [options="header"]
 |====================
 |Code|Severity|ID|Value|Description
-|`ECA_NORMAL`|`CA_K_SUCCESS`|0|1|Normal successful completion
-|`ECA_MAXIOC`|`CA_K_ERROR`|1|10|Maximum simultaneous IOC connections exceeded
-|`ECA_UKNHOST`|`CA_K_ERROR`|2|18|Unknown internet host
-|`ECA_UKNSERV`|`CA_K_ERROR`|3|26|Unknown internet service
-|`ECA_SOCK`|`CA_K_ERROR`|4|34|Unable to allocate a new socket
-|`ECA_CONN`|`CA_K_WARNING`|5|40|Unable to connect to internet host or service
-|`ECA_ALLOCMEM`|`CA_K_WARNING`|6|48|Unable to allocate additional dynamic memory
-|`ECA_UKNCHAN`|`CA_K_WARNING`|7|56|Unknown IO channel
-|`ECA_UKNFIELD`|`CA_K_WARNING`|8|64|Record field specified inappropriate for channel specified
-|`ECA_TOLARGE`|`CA_K_WARNING`|9|72|The requested data transfer is greater than available memory or `EPICS_CA_MAX_ARRAY_BYTES`
-|`ECA_TIMEOUT`|`CA_K_WARNING`|10|80|User specified timeout on IO operation expired
-|`ECA_NOSUPPORT`|`CA_K_WARNING`|11|88|Sorry, that feature is planned but not supported at this time
-|`ECA_STRTOBIG`|`CA_K_WARNING`|12|96|The supplied string is unusually large
-|`ECA_DISCONNCHID`|`CA_K_ERROR`|13|106|The request was ignored because the specified channel is disconnected
-|`ECA_BADTYPE`|`CA_K_ERROR`|14|114|The data type specifed is invalid
-|`ECA_CHIDNOTFND`|`CA_K_INFO`|15|123|Remote Channel not found
-|`ECA_CHIDRETRY`|`CA_K_INFO`|16|131|Unable to locate all user specified channels
-|`ECA_INTERNAL`|`CA_K_FATAL`|17|142|Channel Access Internal Failure
-|`ECA_DBLCLFAIL`|`CA_K_WARNING`|18|144|The requested local DB operation failed
-|`ECA_GETFAIL`|`CA_K_WARNING`|19|152|Channel read request failed
-|`ECA_PUTFAIL`|`CA_K_WARNING`|20|160|Channel write request failed
-|`ECA_ADDFAIL`|`CA_K_WARNING`|21|168|Channel subscription request failed
-|`ECA_BADCOUNT`|`CA_K_WARNING`|22|176|Invalid element count requested
-|`ECA_BADSTR`|`CA_K_ERROR`|23|186|Invalid string
-|`ECA_DISCONN`|`CA_K_WARNING`|24|192|Virtual circuit disconnect
-|`ECA_DBLCHNL`|`CA_K_WARNING`|25|200|Identical process variable name on multiple servers
-|`ECA_EVDISALLOW`|`CA_K_ERROR`|26|210|Request inappropriate within subscription (monitor) update callback
-|`ECA_BUILDGET`|`CA_K_WARNING`|27|216|Database value get for that channel failed during channel search
-|`ECA_NEEDSFP`|`CA_K_WARNING`|28|224|Unable to initialize without the vxWorks `VX_FP_TASK` task option set
-|`ECA_OVEVFAIL`|`CA_K_WARNING`|29|232|Event queue overflow has prevented first pass event after event add
-|`ECA_BADMONID`|`CA_K_ERROR`|30|242|Bad event subscription (monitor) identifier
-|`ECA_NEWADDR`|`CA_K_WARNING`|31|248|Remote channel has new network address
-|`ECA_NEWCONN`|`CA_K_INFO`|32|259|New or resumed network connection
-|`ECA_NOCACTX`|`CA_K_WARNING`|33|264|Specified task isnt a member of a CA context
-|`ECA_DEFUNCT`|`CA_K_FATAL`|34|278|Attempt to use defunct CA feature failed
-|`ECA_EMPTYSTR`|`CA_K_WARNING`|35|280|The supplied string is empty
-|`ECA_NOREPEATER`|`CA_K_WARNING`|36|288|Unable to spawn the CA repeater thread- auto reconnect will fail
-|`ECA_NOCHANMSG`|`CA_K_WARNING`|37|296|No channel id match for search reply- search reply ignored
-|`ECA_DLCKREST`|`CA_K_WARNING`|38|304|Reseting dead connection- will try to reconnect
-|`ECA_SERVBEHIND`|`CA_K_WARNING`|39|312|Server (IOC) has fallen behind or is not responding- still waiting
-|`ECA_NOCAST`|`CA_K_WARNING`|40|320|No internet interface with broadcast available
-|`ECA_BADMASK`|`CA_K_ERROR`|41|330|Invalid event selection mask
-|`ECA_IODONE`|`CA_K_INFO`|42|339|IO operations have completed
-|`ECA_IOINPROGRESS`|`CA_K_INFO`|43|347|IO operations are in progress
-|`ECA_BADSYNCGRP`|`CA_K_ERROR`|44|354|Invalid synchronous group identifier
-|`ECA_PUTCBINPROG`|`CA_K_ERROR`|45|362|Put callback timed out
-|`ECA_NORDACCESS`|`CA_K_WARNING`|46|368|Read access denied
-|`ECA_NOWTACCESS`|`CA_K_WARNING`|47|376|Write access denied
-|`ECA_ANACHRONISM`|`CA_K_ERROR`|48|386|Requested feature is no longer supported
-|`ECA_NOSEARCHADDR`|`CA_K_WARNING`|49|392|Empty PV search address list
-|`ECA_NOCONVERT`|`CA_K_WARNING`|50|400|No reasonable data conversion between client and server types
-|`ECA_BADCHID`|`CA_K_ERROR`|51|410|Invalid channel identifier
-|`ECA_BADFUNCPTR`|`CA_K_ERROR`|52|418|Invalid function pointer
-|`ECA_ISATTACHED`|`CA_K_WARNING`|53|424|Thread is already attached to a client context
-|`ECA_UNAVAILINSERV`|`CA_K_WARNING`|54|432|Not supported by attached service
-|`ECA_CHANDESTROY`|`CA_K_WARNING`|55|440|User destroyed channel
-|`ECA_BADPRIORITY`|`CA_K_ERROR`|56|450|Invalid channel priority
-|`ECA_NOTTHREADED`|`CA_K_ERROR`|57|458|Preemptive callback not enabled - additional threads may not join context
-|`ECA_16KARRAYCLIENT`|`CA_K_WARNING`|58|464|Client's protocol revision does not support transfers exceeding 16k bytes
-|`ECA_CONNSEQTMO`|`CA_K_WARNING`|59|472|Virtual circuit connection sequence aborted
-|`ECA_UNRESPTMO`|`CA_K_WARNING`|60|480|Virtual circuit unresponsive
+|`ECA_NORMAL`|`CA_K_SUCCESS`|0|0x001|Normal successful completion
+|`ECA_ALLOCMEM`|`CA_K_WARNING`|6|0x030|Unable to allocate additional dynamic memory
+|`ECA_TOLARGE`|`CA_K_WARNING`|9|0x048|The requested data transfer is greater than available memory or `EPICS_CA_MAX_ARRAY_BYTES`
+|`ECA_TIMEOUT`|`CA_K_WARNING`|10|0x050|User specified timeout on IO operation expired
+|`ECA_BADTYPE`|`CA_K_ERROR`|14|0x072|The data type specifed is invalid
+|`ECA_INTERNAL`|`CA_K_FATAL`|17|0x08e|Channel Access Internal Failure
+|`ECA_DBLCLFAIL`|`CA_K_WARNING`|18|0x090|The requested local DB operation failed
+|`ECA_GETFAIL`|`CA_K_WARNING`|19|0x098|Channel read request failed
+|`ECA_PUTFAIL`|`CA_K_WARNING`|20|0x0a0|Channel write request failed
+|`ECA_BADCOUNT`|`CA_K_WARNING`|22|0x0b0|Invalid element count requested
+|`ECA_BADSTR`|`CA_K_ERROR`|23|0x0ba|Invalid string
+|`ECA_DISCONN`|`CA_K_WARNING`|24|0x0c0|Virtual circuit disconnect
+|`ECA_EVDISALLOW`|`CA_K_ERROR`|26|0x0d2|Request inappropriate within subscription (monitor) update callback
+|`ECA_BADMONID`|`CA_K_ERROR`|30|0x0f2|Bad event subscription (monitor) identifier
+|`ECA_BADMASK`|`CA_K_ERROR`|41|0x14a|Invalid event selection mask
+|`ECA_IODONE`|`CA_K_INFO`|42|0x153|IO operations have completed
+|`ECA_IOINPROGRESS`|`CA_K_INFO`|43|0x15b|IO operations are in progress
+|`ECA_BADSYNCGRP`|`CA_K_ERROR`|44|0x162|Invalid synchronous group identifier
+|`ECA_PUTCBINPROG`|`CA_K_ERROR`|45|0x16a|Put callback timed out
+|`ECA_NORDACCESS`|`CA_K_WARNING`|46|0x170|Read access denied
+|`ECA_NOWTACCESS`|`CA_K_WARNING`|47|0x178|Write access denied
+|`ECA_ANACHRONISM`|`CA_K_ERROR`|48|0x182|Requested feature is no longer supported
+|`ECA_NOSEARCHADDR`|`CA_K_WARNING`|49|0x188|Empty PV search address list
+|`ECA_NOCONVERT`|`CA_K_WARNING`|50|0x190|No reasonable data conversion between client and server types
+|`ECA_BADCHID`|`CA_K_ERROR`|51|0x19a|Invalid channel identifier
+|`ECA_BADFUNCPTR`|`CA_K_ERROR`|52|0x1a2|Invalid function pointer
+|`ECA_ISATTACHED`|`CA_K_WARNING`|53|0x1a8|Thread is already attached to a client context
+|`ECA_UNAVAILINSERV`|`CA_K_WARNING`|54|0x1b0|Not supported by attached service
+|`ECA_CHANDESTROY`|`CA_K_WARNING`|55|0x1b8|User destroyed channel
+|`ECA_BADPRIORITY`|`CA_K_ERROR`|56|0x1c2|Invalid channel priority
+|`ECA_NOTTHREADED`|`CA_K_ERROR`|57|0x1ca|Preemptive callback not enabled - additional threads may not join context
+|`ECA_16KARRAYCLIENT`|`CA_K_WARNING`|58|0x1d0|Client's protocol revision does not support transfers exceeding 16k bytes
+|`ECA_CONNSEQTMO`|`CA_K_WARNING`|59|0x1d9|Virtual circuit connection sequence aborted
+|`ECA_UNRESPTMO`|`CA_K_WARNING`|60|0x1e0|?
+|====================
+
+Historical error conditions.
+Servers and clients SHOULD NOT send these codes,
+but MAY receive them.
+
+[options="header"]
+|====================
+|Code|Severity|ID|Value|Description
+|`ECA_MAXIOC`|`CA_K_ERROR`|1|0x00a|Maximum simultaneous IOC connections exceeded
+|`ECA_UKNHOST`|`CA_K_ERROR`|2|0x012|Unknown internet host
+|`ECA_UKNSERV`|`CA_K_ERROR`|3|0x01a|Unknown internet service
+|`ECA_SOCK`|`CA_K_ERROR`|4|0x022|Unable to allocate a new socket
+|`ECA_CONN`|`CA_K_WARNING`|5|0x028|Unable to connect to internet host or service
+|`ECA_UKNCHAN`|`CA_K_WARNING`|7|0x038|Unknown IO channel
+|`ECA_UKNFIELD`|`CA_K_WARNING`|8|0x040|Record field specified inappropriate for channel specified
+|`ECA_NOSUPPORT`|`CA_K_WARNING`|11|0x058|Sorry, that feature is planned but not supported at this time
+|`ECA_STRTOBIG`|`CA_K_WARNING`|12|0x060|The supplied string is unusually large
+|`ECA_DISCONNCHID`|`CA_K_ERROR`|13|0x06a|The request was ignored because the specified channel is disconnected
+|`ECA_CHIDNOTFND`|`CA_K_INFO`|15|0x07b|Remote Channel not found
+|`ECA_CHIDRETRY`|`CA_K_INFO`|16|0x083|Unable to locate all user specified channels
+|`ECA_DBLCHNL`|`CA_K_WARNING`|25|0x0c8|Identical process variable name on multiple servers
+|`ECA_ADDFAIL`|`CA_K_WARNING`|21|0x0a8|Channel subscription request failed
+|`ECA_BUILDGET`|`CA_K_WARNING`|27|0x0d8|Database value get for that channel failed during channel search
+|`ECA_NEEDSFP`|`CA_K_WARNING`|28|0x0e0|Unable to initialize without the vxWorks `VX_FP_TASK` task option set
+|`ECA_OVEVFAIL`|`CA_K_WARNING`|29|0x0e8|Event queue overflow has prevented first pass event after event add
+|`ECA_NEWADDR`|`CA_K_WARNING`|31|0x0f8|Remote channel has new network address
+|`ECA_NEWCONN`|`CA_K_INFO`|32|0x103|New or resumed network connection
+|`ECA_NOCACTX`|`CA_K_WARNING`|33|0x108|Specified task isnt a member of a CA context
+|`ECA_DEFUNCT`|`CA_K_FATAL`|34|00x116|Attempt to use defunct CA feature failed
+|`ECA_EMPTYSTR`|`CA_K_WARNING`|35|0x118|The supplied string is empty
+|`ECA_NOREPEATER`|`CA_K_WARNING`|36|0x120|Unable to spawn the CA repeater thread- auto reconnect will fail
+|`ECA_NOCHANMSG`|`CA_K_WARNING`|37|0x0128|No channel id match for search reply- search reply ignored
+|`ECA_DLCKREST`|`CA_K_WARNING`|38|0x130|Reseting dead connection- will try to reconnect
+|`ECA_SERVBEHIND`|`CA_K_WARNING`|39|0x138|Server (IOC) has fallen behind or is not responding- still waiting
+|`ECA_NOCAST`|`CA_K_WARNING`|40|0x140|No internet interface with broadcast available
 |====================
 
 

@@ -137,7 +137,7 @@ Example:
 
 \begin{verbatim}
 dbgf("aitest")
-dbgf)"aitest.VAL")
+dbgf("aitest.VAL")
 \end{verbatim}
 
 This performs a \verb|dbNameToAddr| and then a \verb|dbGetField|. It prints the field type and value. If the field name is not 
@@ -729,7 +729,9 @@ Format:
 
 \begin{verbatim}
 epicsParamShow
+\end{verbatim}
 or
+\begin{verbatim}
 epicsPrtEnvParams
 \end{verbatim}
 
@@ -775,7 +777,7 @@ Example:
 
 \begin{verbatim}
 dbtgf("aitest")
-dbtgf)"aitest.VAL")
+dbtgf("aitest.VAL")
 \end{verbatim}
 
 This performs a \verb|dbNameToAddr| and then calls \verb|dbGetField| with all possible request types and options. It prints the 
@@ -958,8 +960,10 @@ Dump Path:
 dbDumpPath(pdbbase)
 \end{verbatim}
 
+Example:
+
 \begin{verbatim}
-   dbDumpPath(pdbbase)
+dbDumpPath(pdbbase)
 \end{verbatim}
 
 The current path for database includes is displayed.
@@ -973,8 +977,10 @@ Dump Menu:
 dbDumpMenu(pdbbase,"<menu>")
 \end{verbatim}
 
+Example:
+
 \begin{verbatim}
-   dbDumpMenu(pdbbase,"menuScan")
+dbDumpMenu(pdbbase,"menuScan")
 \end{verbatim}
 
 If the second argument is 0 then all menus are displayed.
@@ -990,8 +996,10 @@ Dump Record Description:
 dbDumpRecordType(pdbbase,"<record type>")
 \end{verbatim}
 
+Example:
+
 \begin{verbatim}
-   dbDumpRecordType(pdbbase,"ai")
+dbDumpRecordType(pdbbase,"ai")
 \end{verbatim}
 
 If the second argument is 0 then all descriptions of all records are displayed.
@@ -1005,8 +1013,10 @@ Dump Field Description:
 dbDumpField(pdbbase,"<record type>","<field name>")
 \end{verbatim}
 
+Example:
+
 \begin{verbatim}
-   dbDumpField(pdbbase,"ai","VAL")
+dbDumpField(pdbbase,"ai","VAL")
 \end{verbatim}
 
 If the second argument is 0 then the field descriptions of all records are displayed. If the third argument is 0 then the 
@@ -1021,8 +1031,10 @@ Dump Device Support:
 dbDumpDevice(pdbbase,"<record type>")
 \end{verbatim}
 
+Example:
+
 \begin{verbatim}
-   dbDumpDevice(pdbbase,"ai")
+dbDumpDevice(pdbbase,"ai")
 \end{verbatim}
 
 If the second argument is 0 then the device support for all record types is displayed.
@@ -1036,8 +1048,10 @@ Dump Driver Support:
 dbDumpDriver(pdbbase)
 \end{verbatim}
 
+Example:
+
 \begin{verbatim}
-   dbDumpDriver(pdbbase)
+dbDumpDriver(pdbbase)
 \end{verbatim}
 
 \subsection{dbDumpRecord}
@@ -1049,8 +1063,10 @@ Dump Record Instances:
 dbDumpRecord(pdbbase,"<record type>",level)
 \end{verbatim}
 
+Example:
+
 \begin{verbatim}
-   dbDumpRecords(pdbbase,"ai")
+dbDumpRecords(pdbbase,"ai")
 \end{verbatim}
 
 If the second argument is 0 then the record instances for all record types are displayed. The third argument determines 
@@ -1064,8 +1080,10 @@ Dump breakpoint table
 dbDumpBreaktable(pdbbase,name)
 \end{verbatim}
 
+Example:
+
 \begin{verbatim}
-   dbDumpBreaktable(pdbbase,"typeKdegF")
+dbDumpBreaktable(pdbbase,"typeKdegF")
 \end{verbatim}
 
 This command dumps a breakpoint table. If the second argument is 0 all breakpoint tables are dumped.
@@ -1079,8 +1097,10 @@ Dump the Process variable Directory:
 dbPvdDump(pdbbase,verbose)
 \end{verbatim}
 
+Example:
+
 \begin{verbatim}
-   dbPvdDump(pdbbase,0)
+dbPvdDump(pdbbase,0)
 \end{verbatim}
 
 This command shows how many records are mapped to each hash table entry of the process variable directory. If verbose 

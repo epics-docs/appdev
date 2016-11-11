@@ -215,12 +215,12 @@ The declarations described in this section are included in the \verb|iocsh.h| he
 
 The prototypes for calling the IOC shell command interpreter are:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 int iocsh(const char *pathname);
 int iocshLoad(const char *pathname, const char *macros);
 int iocshCmd(const char *cmd);
 int iocshRun(const char *cmd, const char *macros);
-\end{verbatim}
+\end{lstlisting}
 
 \index{iocsh}
 \index{iocshLoad}
@@ -261,9 +261,9 @@ The stdio stream redirection and environment variable expansion processes descri
 Commands must be registered before they can be recognized by the IOC shell.
 Registration is achieved by calling the registration function:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void iocshRegister(const iocshFuncDef *piocshFuncDef, iocshCallFunc func);
-\end{verbatim}
+\end{lstlisting}
 
 \index{iocshRegister}
 The first argument is a pointer to a data structure which describes the command and any arguments it may take.
@@ -271,13 +271,13 @@ The second argument is a pointer to a function which will be called by iocsh whe
 
 The command is described by the  \verb|iocshFuncDef |structure:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 struct iocshFuncDef {
     const char *name;
     int nargs;
     const iocshArg * const *arg;
 };
-\end{verbatim}
+\end{lstlisting}
 
 \index{iocshFuncDef}
 The name element is the name of the command.
@@ -286,12 +286,12 @@ The nargs element declares the number of entries in the array of pointers to the
 If nargs is zero, arg can be NULL.
 The structures which define each of the arguments is:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 struct iocshArg {
     const char *name;
     iocshArgType type;
 }iocshArg;
-\end{verbatim}
+\end{lstlisting}
 
 \index{iocshArg}
 The name element is used by the help command to print a synopsis for the command.
@@ -314,9 +314,9 @@ iocshArgArgv & An arbitrary number of arguments is expected.  Subsequent iocshAr
 
 The `handler' function which is called when its corresponding command is recognized should be of the form:
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 void showCallFunc(const iocshArgBuf *args);
-\end{verbatim}
+\end{lstlisting}
 
 The argument to the handler function is a pointer to an array of unions.
 The number of elements in this array is equal to the number of arguments specified in the structure describing the command.
@@ -350,7 +350,7 @@ This function then calls \verb|iocshRegister| to register its commands with the 
 \index{registrar}
 The following code fragments shows how this can be performed for an example driver.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include <iocsh.h>
 #include <epicsExport.h>
 
@@ -361,7 +361,7 @@ static void drvXxxRegistrar(void)
     iocshRegister(&drvXxxConfigureFuncDef, drvXxxConfigureCallFunc);
 }
 epicsExportRegistrar(drvXxxRegistrar);
-\end{verbatim}
+\end{lstlisting}
 
 To include this driver in an application a developer would then add
 
@@ -376,7 +376,7 @@ to an application database description file.
 A C++ static constructor can also be used to register IOC shell commands before the EPICS application begins.
 The following example shows how the \verb|epicsThreadSleep| command could be described and registered.
 
-\begin{verbatim}
+\begin{lstlisting}[language=C]
 #include <iocsh.h>
 
 static const iocshArg epicsThreadSleepArg0 = { "seconds",iocshArgDouble};
@@ -395,5 +395,5 @@ static int doRegister(void)
     return 1;
 }
 static int done = doRegister();
-\end{verbatim}
+\end{lstlisting}
 
