@@ -87,11 +87,11 @@ $(INSTALL_DIR)/%.html: %.html
 
 AppDevGuide.pdf: $(TEX_SRCS) $(DIAGS)
 	@rm -f pdflatex*.out
-	pdflatex $(basename $@) > pdflatex-1.out
+	pdflatex --interaction=nonstopmode $(basename $@) > pdflatex-1.out
 	makeindex $(basename $@).idx
-	pdflatex $(basename $@) > pdflatex-2.out
+	pdflatex --interaction=nonstopmode $(basename $@) > pdflatex-2.out
 	makeindex $(basename $@).idx
-	pdflatex $(basename $@) > pdflatex-3.out
+	pdflatex --interaction=nonstopmode $(basename $@) > pdflatex-3.out
 
 AppDevGuide/index.html: $(TEX_SRCS) $(EPS_SRCS)
 	@rm -f latex2html*.out
