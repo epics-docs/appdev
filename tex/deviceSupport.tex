@@ -14,7 +14,7 @@ specific fields in a database record and device drivers or the hardware itself.
 Release 3.14.8 introduced the concept of \index{Extended device support}extended device support, which provides an optional interface that a device 
 support can implement to obtain notification when a record's address is changed at runtime. This permits records to be 
 reconnected to a different kind of I/O device, or just to a different signal on the same device. Extended device support is 
-described in more detail in Section12.5 on page190 below.
+described in more detail in Section \ref{Extended device support} below.
 
 Database common contains two device related fields:
 
@@ -231,7 +231,7 @@ generates the report.
 
 \subsection{Initialize Device Processing}
 
-\index{Initialize Record Processing}
+\index{Initialize Device Processing}
 \begin{verbatim}
 long init(
     int   after);
@@ -330,8 +330,8 @@ If a record is set to I/O Interrupt scan but the new layer does not support this
 \subsection{Initialization/Registration}
 
 Device support that implements the extended behaviour must provide an \verb|init| routine in the Device Support Entry Table 
-(see Section12.4.2 on page189).   In the first call to this routine (pass 0) it registers the address of its Device Support 
-eXtension Table (DSXT) in a call to \verb|devExtend|.
+(see Section \ref{Initialize Device Processing}).
+In the first call to this routine (pass 0) it registers the address of its Device Support eXtension Table (DSXT) in a call to \verb|devExtend|.
 
 The only exception to this registration requirement is when the device support uses a link type of CONSTANT.  In this 
 circumstance the system will automatically register an empty DSXT for that particular support layer (both the 
@@ -383,7 +383,7 @@ long add_record(
 \end{verbatim}
 
 \index{add\_record}This function is called to offer a new record to the device support. It is also called during iocInit, in between the pass 0 and 
-pass 1 calls to the regular device support \verb|init_record| routine (described in Section12.4.3 on page189 FIXPAGEREF above). When 
+pass 1 calls to the regular device support \verb|init_record| routine (described in Section \ref{Initialize Specific Record} above). When 
 converting an existing device support layer, this routine will usually be very similar to the old \verb|init_record| routine, 
 although in some cases it may be necessary to do a little more work depending on the particular record type involved. The 
 extra code required in these cases can generally be copied straight from the record type implementation itself. This is 
@@ -432,7 +432,7 @@ the new device support.
 
 \subsection{Init Record Routine}
 
-The \verb|init_record| routine from the DSET (Section12.4.3 on page189 FIXPAGEREF) is called by the record type, and must still be 
+The \verb|init_record| routine from the DSET (see Section \ref{Initialize Specific Record}) is called by the record type, and must still be 
 provided since the record type's per-record initialization is run some time \emph{after} the initial call to the DSXT's 
 \verb|add_record| routine. Most record types perform some initialization of record fields at this point, and an extended device 
 support layer may have to fix anything that the record overwrites. The following (incomplete) list is presented as an aid to 
