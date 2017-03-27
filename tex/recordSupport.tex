@@ -371,54 +371,47 @@ The functions that must be performed by the remaining routines are described in 
 \subsection{Alarm Processing}
 
 \begin{lstlisting}[language=C]
-static void checkAlarms(xxxRecord *pxxx)
+static void checkAlarms(xxxRecord *prec)
 {
-    double        val;
-    float         hyst,lalm,hihi,high,low,lolo;
-    unsigned short hhsv,llsv,hsv,lsv;
+	double		val;
+	float		hyst, lalm, hihi, high, low, lolo;
+	unsigned short	hhsv, llsv, hsv, lsv;
 
-    if(pxxx->udf == TRUE ){
-        recGblSetSevr(pxxx,UDF_ALARM,VALID_ALARM);
-        return;
-    }
+	if(prec->udf == TRUE ){
+		recGblSetSevr(prec,UDF_ALARM,prec->udfs);
+		return;
+	}
+	hihi = prec->hihi; lolo = prec->lolo; high = prec->high; low = prec->low;
+	hhsv = prec->hhsv; llsv = prec->llsv; hsv = prec->hsv; lsv = prec->lsv;
+	val = prec->val; hyst = prec->hyst; lalm = prec->lalm;
 
-    hihi=pxxx->hihi; lolo=pxxx->lolo;
-    high=pxxx->high; low=pxxx->low;
-    hhsv=pxxx->hhsv; llsv=pxxx->llsv;
-    hsv=pxxx->hsv; lsv=pxxx->lsv;
-    val=pxxx->val; hyst=pxxx->hyst; lalm=pxxx->lalm;
+	/* alarm condition hihi */
+	if (hhsv && (val >= hihi || ((lalm==hihi) && (val >= hihi-hyst)))){
+	        if (recGblSetSevr(prec,HIHI_ALARM,prec->hhsv)) prec->lalm = hihi;
+		return;
+	}
 
-    /* alarm condition hihi */
-    if (hhsv && (val >= hihi 
-    || ((lalm==hihi) && (val >= hihi-hyst)))) {
-        if(recGblSetSevr(pxxx,HIHI_ALARM,pxxx->hhsv)
-            pxxx->lalm = hihi;
-        return;
-    }
-    /* alarm condition lolo */
-    if (llsv && (val <= lolo 
-    || ((lalm==lolo) && (val <= lolo+hyst)))) {
-        if(recGblSetSevr(pxxx,LOLO_ALARM,pxxx->llsv))
-            pxxx->lalm = lolo;
-        return;
-    }
-    /* alarm condition high */
-    if (hsv && (val >= high 
-    || ((lalm==high) && (val >= high-hyst)))) {
-        if(recGblSetSevr(pxxx,HIGH_ALARM,pxxx->hsv))
-            pxxx->lalm = high;
-        return;
-    }
-    /* alarm condition low */
-    if (lsv && (val <= low 
-    || (lalm==low) && (val <= low+hyst)))) {
-        if(recGblSetSevr(pxxx,LOW_ALARM,pxxx->lsv))
-            pxxx->lalm = low;
-    return;
-    }
-    /*we get here only if val is out of alarm by at least hyst*/
-    pxxx->lalm=val;
-    return;
+	/* alarm condition lolo */
+	if (llsv && (val <= lolo || ((lalm==lolo) && (val <= lolo+hyst)))){
+	        if (recGblSetSevr(prec,LOLO_ALARM,prec->llsv)) prec->lalm = lolo;
+		return;
+	}
+
+	/* alarm condition high */
+	if (hsv && (val >= high || ((lalm==high) && (val >= high-hyst)))){
+	        if (recGblSetSevr(prec,HIGH_ALARM,prec->hsv)) prec->lalm = high;
+		return;
+	}
+
+	/* alarm condition low */
+	if (lsv && (val <= low || ((lalm==low) && (val <= low+hyst)))){
+	        if (recGblSetSevr(prec,LOW_ALARM,prec->lsv)) prec->lalm = low;
+		return;
+	}
+
+	/* we get here only if val is out of alarm by at least hyst */
+	prec->lalm = val;
+	return;
 }
 \end{lstlisting}
 
@@ -435,18 +428,19 @@ It honors the hysteresis only when the value is going to a lower alarm severity.
 Note the test:
 
 \begin{lstlisting}[language=C]
-if(pxxx->udf == TRUE ){
-    recGblSetSevr(pxxx,UDF_ALARM,VALID_ALARM);
-    return;
-}
+	if(prec->udf == TRUE ){
+		recGblSetSevr(prec,UDF_ALARM,prec->udfs);
+		return;
+	}
 \end{lstlisting}
 
 \index{udf}
 Database common defines the field \index{UDF}UDF, which means that field VAL is undefined.
-The STAT and SEVR fields are initialized as though \verb|recGblSetSevr(pxxx,UDF_ALARM,VALID_ALARM)|was called.
-Thus if the record is never processed the record will be in an INVALID UNDEFINED alarm state.
+The field \index{UDFS}UDFS controls the severity of the record in undefined state.
+The STAT and SEVR fields are initialized as if \verb|recGblSetSevr(pxxx,UDF_ALARM,<value_of_UDFS>)|was called.
+Thus if the record is never processed the record will be in an <value\_of\_UDFS> UNDEFINED alarm state.
 Field UDF is initialized to the value 1, i.e. TRUE.
-Thus the above code will keep the record in the INVALID UNDEFINED alarm state as long as UDF is not given the value 0.
+Thus the above code will keep the record in the alarm state until UDF is reset to the value 0.
 
 The UDF field means Undefined, i.e. the VAL field has never been given a value.
 When records are loaded into an ioc this is the initial state of records.
