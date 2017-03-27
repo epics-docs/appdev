@@ -95,25 +95,26 @@ The set of routines is the same for every record type.
 These routines are located via a Record Support Entry Table (\index{RSET}\index{Record Support Entry Table}RSET), which has the following structure:
 
 \begin{lstlisting}[language=C]
-struct rset {   /* record support entry table */
-    long     number;            /* number of support routine */
-    RECSUPFUN   report;         /* print report */
-    RECSUPFUN   init;           /* init support */
-    RECSUPFUN   init_record;    /* init record */
-    RECSUPFUN   process;        /* process record */
-    RECSUPFUN   special;        /* special processing */
-    RECSUPFUN   get_value;      /* OBSOLETE: Just leave NULL */
-    RECSUPFUN   cvt_dbaddr;     /* cvt  dbAddr */
-    RECSUPFUN   get_array_info;
-    RECSUPFUN   put_array_info;
-    RECSUPFUN   get_units;
-    RECSUPFUN   get_precision;
-    RECSUPFUN   get_enum_str;   /* get string from enum */
-    RECSUPFUN   get_enum_strs;  /* get all enum strings */
-    RECSUPFUN   put_enum_str;   /* put enum from string */
-    RECSUPFUN   get_graphic_double;
-    RECSUPFUN   get_control_double;
-    RECSUPFUN   get_alarm_double;
+/* record support entry table */
+struct rset {
+    long number; /* number of support routines */
+    long (*report)(void *precord);
+    long (*init)();
+    long (*init_record)(struct dbCommon *precord, int pass);
+    long (*process)(struct dbCommon *precord);
+    long (*special)(struct dbAddr *paddr, int after);
+    long (*get_value)(void); /* DEPRECATED set to NULL */
+    long (*cvt_dbaddr)(struct dbAddr *paddr);
+    long (*get_array_info)(struct dbAddr *paddr, long *no_elements, long *offset);
+    long (*put_array_info)(struct dbAddr *paddr, long nNew);
+    long (*get_units)(struct dbAddr *paddr, char *units);
+    long (*get_precision)(const struct dbAddr *paddr, long *precision);
+    long (*get_enum_str)(const struct dbAddr *paddr, char *pbuffer);
+    long (*get_enum_strs)(const struct dbAddr *paddr, struct dbr_enumStrs *p);
+    long (*put_enum_str)(const struct dbAddr *paddr, const char *pbuffer);
+    long (*get_graphic_double)(struct dbAddr *paddr, struct dbr_grDouble *p);
+    long (*get_control_double)(struct dbAddr *paddr, struct dbr_ctrlDouble *p);
+    long (*get_alarm_double)(struct dbAddr *paddr, struct dbr_alDouble *p);
 };
 \end{lstlisting}
 
@@ -157,60 +158,58 @@ Consult the Record Reference manual for a description.
 \subsection{Declarations}
 
 \begin{lstlisting}[language=C]
-/* Create RSET - Record Support Entry Table*/
+/* Create RSET - Record Support Entry Table */
 #define report NULL
 #define initialize NULL
-static long init_record();
-static long process();
+static long init_record(struct dbCommon *, int);
+static long process(struct dbCommon *);
 #define special NULL
 #define get_value NULL
 #define cvt_dbaddr NULL
 #define get_array_info NULL
 #define put_array_info NULL
-static long get_units();
-static long get_precision();
+static long get_units(DBADDR *, char *);
+static long get_precision(const DBADDR *, long *);
 #define get_enum_str NULL
 #define get_enum_strs NULL
 #define put_enum_str NULL
-static long get_graphic_double();
-static long get_control_double();
-static long get_alarm_double();
-
+static long get_graphic_double(DBADDR *, struct dbr_grDouble *);
+static long get_control_double(DBADDR *, struct dbr_ctrlDouble *);
+static long get_alarm_double(DBADDR *, struct dbr_alDouble *);
+ 
 rset xxxRSET={
-    RSETNUMBER,
-    report,
-    initialize,
-    init_record,
-    process,
-    special,
-    get_value,
-    cvt_dbaddr,
-    get_array_info,
-    put_array_info,
-    get_units,
-    get_precision,
-    get_enum_str,
-    get_enum_strs,
-    put_enum_str,
-    get_graphic_double,
-    get_control_double,
-    get_alarm_double
+	RSETNUMBER,
+	report,
+	initialize,
+	init_record,
+	process,
+	special,
+	get_value,
+	cvt_dbaddr,
+	get_array_info,
+	put_array_info,
+	get_units,
+	get_precision,
+	get_enum_str,
+	get_enum_strs,
+	put_enum_str,
+	get_graphic_double,
+	get_control_double,
+	get_alarm_double
 };
 epicsExportAddress(rset,xxxRSET);
 
-/* declarations for associated DSET */
-typedef struct xxxdset { /* analog input dset */
-    long   number;
-    DEVSUPFUN   dev_report;
-    DEVSUPFUN   init;
-    DEVSUPFUN   init_record; /* returns: (1,0)=> (failure, success)*/
-    DEVSUPFUN   get_ioint_info;
-    DEVSUPFUN   read_xxx;
+typedef struct xxxset { /* xxx input dset */
+	long		number;
+	DEVSUPFUN	dev_report;
+	DEVSUPFUN	init;
+	DEVSUPFUN	init_record; /*returns: (-1,0)=>(failure,success)*/
+	DEVSUPFUN	get_ioint_info;
+	DEVSUPFUN	read_xxx;
 }xxxdset;
 
-/* forward declaration for internal routines*/
-static void checkAlarams(xxxRecord *pxxx);
-static void monitor(xxxRecord *pxxx);
+static void checkAlarms(xxxRecord *prec);
+static void monitor(xxxRecord *prec);
 \end{lstlisting}
 
 \index{RSET - example}The above declarations define the Record Support Entry Table (RSET), a template for the associated Device Support Entry Table (DSET), and forward declarations to private routines.
@@ -224,26 +223,26 @@ The template for the DSET is declared for use by this module.
 
 \index{init\_record - example}
 \begin{lstlisting}[language=C]
-static long init_record(void *precord, int  pass)
+static long init_record(struct dbCommon *pcommon, int pass)
 {
-    xxxRecord*pxxx = (xxxRecord *)precord;
-    xxxdset*pdset;
-    longstatus;
+    xxxRecord *prec = (xxxRecord *)pcommon;
+    xxxdset	*pdset;
+    long	status;
 
-    if(pass==0) return(0); 
+    if (pass==0) return(0);
 
-    if((pdset = (xxxdset *)(pxxx->dset)) == NULL) {
-        recGblRecordError(S_dev_noDSET,pxxx,"xxx: init_record");
-        return(S_dev_noDSET);
+    if(!(pdset = (xxxdset *)(prec->dset))) {
+	recGblRecordError(S_dev_noDSET,(void *)prec,"xxx: init_record");
+	return(S_dev_noDSET);
     }
     /* must have read_xxx function defined */
     if( (pdset->number < 5) || (pdset->read_xxx == NULL) ) {
-        recGblRecordError(S_dev_missingSup,pxxx,
-        "xxx: init_record");
-        return(S_dev_missingSup);
+	recGblRecordError(S_dev_missingSup,(void *)prec,"xxx: init_record");
+	return(S_dev_missingSup);
     }
+
     if( pdset->init_record ) {
-        if((status=(*pdset->init_record)(pxxx))) return(status);
+	if((status=(*pdset->init_record)(prec))) return(status);
     }
     return(0);
 }
@@ -264,36 +263,35 @@ This is accomplished by having the waveform record support allocate the array du
 
 \index{process - example}
 \begin{lstlisting}[language=C]
-static long process(void *precord)
+static long process(struct dbCommon *pcommon)
 {
-    xxxRecord*pxxx = (xxxRecord *)precord;
-        xxxdset*pdset = (xxxdset *)pxxx->dset;
-    longstatus;
-    unsigned char pact=pxxx->pact;
+    xxxRecord	*prec = (xxxRecord *)pcommon;
+	xxxdset		*pdset = (xxxdset *)(prec->dset);
+	long		 status;
+	unsigned char    pact=prec->pact;
 
-    if( (pdset==NULL) || (pdset->read_xxx==NULL) ) {
-        /* leave pact true so that dbProcess doesnt call again*/
-        pxxx->pact=TRUE;
-        recGblRecordError(S_dev_missingSup,pxxx,"read_xxx");
-        return(S_dev_missingSup);
-    }
+	if( (pdset==NULL) || (pdset->read_xxx==NULL) ) {
+		prec->pact=TRUE;
+		recGblRecordError(S_dev_missingSup,(void *)prec,"read_xxx");
+		return(S_dev_missingSup);
+	}
 
-    /* pact must not be set true until read_xxx completes*/
-    status=(*pdset->read_xxx)(pxxx); /* read the new value */
-     /* return if beginning of asynch processing*/
-    if(!pact && pxxx->pact) return(0);
-    pxxx->pact = TRUE;
-    recGblGetTimeStamp(pxxx);
+	/* pact must not be set until after calling device support */
+	status=(*pdset->read_xxx)(prec);
+	/* check if device support set pact */
+	if ( !pact && prec->pact ) return(0);
+	prec->pact = TRUE;
 
-    /* check for alarms */
-    alarm(pxxx);
-    /* check event list */
-    monitor(pxxx);
-    /* process the forward scan link record */
-    recGblFwdLink(pxxx);
+	recGblGetTimeStamp(prec);
+	/* check for alarms */
+	checkAlarms(prec);
+	/* check event list */
+	monitor(prec);
+	/* process the forward scan link record */
+        recGblFwdLink(prec);
 
-    pxxx->pact=FALSE;
-    return(status);
+	prec->pact=FALSE;
+	return(status);
 }
 \end{lstlisting}
 
@@ -341,21 +339,36 @@ The next time \verb|process| is called everything starts all over from the begin
 \begin{lstlisting}[language=C]
 static long get_units(DBADDR *paddr, char *units)
 {
-    xxxRecord  *pxxx=(xxxRecord *)paddr->precord;
+    xxxRecord	*prec=(xxxRecord *)paddr->precord;
 
-    strncpy(units,pxxx->egu,sizeof(pxxx->egu));
+    strncpy(units,prec->egu,DB_UNITS_SIZE);
     return(0);
 }
 
-static long get_graphic_double(DBADDR *paddr,
-    struct dbr_grDouble *pgd)
+static long get_precision(const DBADDR *paddr, long *precision)
 {
-    xxxRecord  *pxxx=(xxxRecord *)paddr->precord;
-    int   fieldIndex = dbGetFieldIndex(paddr);
+    xxxRecord	*prec=(xxxRecord *)paddr->precord;
 
-    if(fieldIndex == xxxRecordVAL) {
-        pgd->upper_disp_limit = pxxx->hopr;
-        pgd->lower_disp_limit = pxxx->lopr;
+    *precision = prec->prec;
+    if(paddr->pfield == (void *)&prec->val) return(0);
+    recGblGetPrec(paddr,precision);
+    return(0);
+}
+
+static long get_graphic_double(DBADDR *paddr,struct dbr_grDouble *pgd)
+{
+    xxxRecord	*prec=(xxxRecord *)paddr->precord;
+    int		fieldIndex = dbGetFieldIndex(paddr);
+
+    if(fieldIndex == xxxRecordVAL
+    || fieldIndex == xxxRecordHIHI
+    || fieldIndex == xxxRecordHIGH
+    || fieldIndex == xxxRecordLOW
+    || fieldIndex == xxxRecordLOLO
+    || fieldIndex == xxxRecordHOPR
+    || fieldIndex == xxxRecordLOPR) {
+        pgd->upper_disp_limit = prec->hopr;
+        pgd->lower_disp_limit = prec->lopr;
     } else recGblGetGraphicDouble(paddr,pgd);
     return(0);
 }
@@ -371,54 +384,47 @@ The functions that must be performed by the remaining routines are described in 
 \subsection{Alarm Processing}
 
 \begin{lstlisting}[language=C]
-static void checkAlarms(xxxRecord *pxxx)
+static void checkAlarms(xxxRecord *prec)
 {
-    double        val;
-    float         hyst,lalm,hihi,high,low,lolo;
-    unsigned short hhsv,llsv,hsv,lsv;
+	double		val;
+	float		hyst, lalm, hihi, high, low, lolo;
+	unsigned short	hhsv, llsv, hsv, lsv;
 
-    if(pxxx->udf == TRUE ){
-        recGblSetSevr(pxxx,UDF_ALARM,VALID_ALARM);
-        return;
-    }
+	if(prec->udf == TRUE ){
+		recGblSetSevr(prec,UDF_ALARM,prec->udfs);
+		return;
+	}
+	hihi = prec->hihi; lolo = prec->lolo; high = prec->high; low = prec->low;
+	hhsv = prec->hhsv; llsv = prec->llsv; hsv = prec->hsv; lsv = prec->lsv;
+	val = prec->val; hyst = prec->hyst; lalm = prec->lalm;
 
-    hihi=pxxx->hihi; lolo=pxxx->lolo;
-    high=pxxx->high; low=pxxx->low;
-    hhsv=pxxx->hhsv; llsv=pxxx->llsv;
-    hsv=pxxx->hsv; lsv=pxxx->lsv;
-    val=pxxx->val; hyst=pxxx->hyst; lalm=pxxx->lalm;
+	/* alarm condition hihi */
+	if (hhsv && (val >= hihi || ((lalm==hihi) && (val >= hihi-hyst)))){
+	        if (recGblSetSevr(prec,HIHI_ALARM,prec->hhsv)) prec->lalm = hihi;
+		return;
+	}
 
-    /* alarm condition hihi */
-    if (hhsv && (val >= hihi 
-    || ((lalm==hihi) && (val >= hihi-hyst)))) {
-        if(recGblSetSevr(pxxx,HIHI_ALARM,pxxx->hhsv)
-            pxxx->lalm = hihi;
-        return;
-    }
-    /* alarm condition lolo */
-    if (llsv && (val <= lolo 
-    || ((lalm==lolo) && (val <= lolo+hyst)))) {
-        if(recGblSetSevr(pxxx,LOLO_ALARM,pxxx->llsv))
-            pxxx->lalm = lolo;
-        return;
-    }
-    /* alarm condition high */
-    if (hsv && (val >= high 
-    || ((lalm==high) && (val >= high-hyst)))) {
-        if(recGblSetSevr(pxxx,HIGH_ALARM,pxxx->hsv))
-            pxxx->lalm = high;
-        return;
-    }
-    /* alarm condition low */
-    if (lsv && (val <= low 
-    || (lalm==low) && (val <= low+hyst)))) {
-        if(recGblSetSevr(pxxx,LOW_ALARM,pxxx->lsv))
-            pxxx->lalm = low;
-    return;
-    }
-    /*we get here only if val is out of alarm by at least hyst*/
-    pxxx->lalm=val;
-    return;
+	/* alarm condition lolo */
+	if (llsv && (val <= lolo || ((lalm==lolo) && (val <= lolo+hyst)))){
+	        if (recGblSetSevr(prec,LOLO_ALARM,prec->llsv)) prec->lalm = lolo;
+		return;
+	}
+
+	/* alarm condition high */
+	if (hsv && (val >= high || ((lalm==high) && (val >= high-hyst)))){
+	        if (recGblSetSevr(prec,HIGH_ALARM,prec->hsv)) prec->lalm = high;
+		return;
+	}
+
+	/* alarm condition low */
+	if (lsv && (val <= low || ((lalm==low) && (val <= low+hyst)))){
+	        if (recGblSetSevr(prec,LOW_ALARM,prec->lsv)) prec->lalm = low;
+		return;
+	}
+
+	/* we get here only if val is out of alarm by at least hyst */
+	prec->lalm = val;
+	return;
 }
 \end{lstlisting}
 
@@ -435,20 +441,21 @@ It honors the hysteresis only when the value is going to a lower alarm severity.
 Note the test:
 
 \begin{lstlisting}[language=C]
-if(pxxx->udf == TRUE ){
-    recGblSetSevr(pxxx,UDF_ALARM,VALID_ALARM);
-    return;
-}
+	if(prec->udf == TRUE ){
+		recGblSetSevr(prec,UDF_ALARM,prec->udfs);
+		return;
+	}
 \end{lstlisting}
 
 \index{udf}
 Database common defines the field \index{UDF}UDF, which means that field VAL is undefined.
-The STAT and SEVR fields are initialized as though \verb|recGblSetSevr(pxxx,UDF_ALARM,VALID_ALARM)|was called.
-Thus if the record is never processed the record will be in an INVALID UNDEFINED alarm state.
+The field \index{UDFS}UDFS controls the severity of the record in undefined state.
+The STAT and SEVR fields are initialized as if \verb|recGblSetSevr(pxxx,UDF_ALARM,<value_of_UDFS>)|was called.
+Thus if the record is never processed the record will be in an <value\_of\_UDFS> UNDEFINED alarm state.
 Field UDF is initialized to the value 1, i.e. TRUE.
-Thus the above code will keep the record in the INVALID UNDEFINED alarm state as long as UDF is not given the value 0.
+Thus the above code will keep the record in the alarm state until UDF is reset to the value 0.
 
-The UDF field means Undefined, i.e. the VAL field has never been given a value.
+The UDF field being 1 means Undefined, i.e. the VAL field has never been given a value.
 When records are loaded into an ioc this is the initial state of records.
 Whevever code gives a value to the VAL field it is also supposed to set UDF false.
 Unless a particular record type has unusual semantics no code should set UDF true.
@@ -472,35 +479,37 @@ The code that detects an alarm is responsible for raising the alarm.
 \subsection{Raising Monitors}
 
 \begin{lstlisting}[language=C]
-static void monitor(xxxRecord *pxxx)
+static void monitor(xxxRecord *prec)
 {
-    unsigned short   monitor_mask;
-    float            delta;
+	unsigned short	monitor_mask;
+	double		delta;
 
-    monitor_mask = recGblResetAlarms(pxxx);
-    /* check for value change */
-    delta = pxxx->mlst - pxxx->val;
-    if(delta<0.0) delta = -delta;
-    if (delta > pxxx->mdel) {
-        /* post events for value change */
-        monitor_mask |= DBE_VALUE;
-        /* update last value monitored */
-        pxxx->mlst = pxxx->val;
-    }
-    /* check for archive change */
-    delta = pxxx->alst - pxxx->val;
-    if(delta<0.0) delta = 0.0;
-    if (delta > pxxx->adel) {
-        /* post events on value field for archive change */
-        monitor_mask |= DBE_LOG;
-        /* update last archive value monitored */
-        pxxx->alst = pxxx->val;
-    }
-    /* send out monitors connected to the value field */
-    if (monitor_mask){
-        db_post_events(pxxx,&pxxx->val,monitor_mask);
-    }
-    return;
+        monitor_mask = recGblResetAlarms(prec);
+	/* check for value change */
+	delta = prec->mlst - prec->val;
+	if(delta<0.0) delta = -delta;
+	if (delta > prec->mdel) {
+		/* post events for value change */
+		monitor_mask |= DBE_VALUE;
+		/* update last value monitored */
+		prec->mlst = prec->val;
+	}
+
+	/* check for archive change */
+	delta = prec->alst - prec->val;
+	if(delta<0.0) delta = -delta;
+	if (delta > prec->adel) {
+		/* post events on value field for archive change */
+		monitor_mask |= DBE_LOG;
+		/* update last archive value monitored */
+		prec->alst = prec->val;
+	}
+
+	/* send out monitors connected to the value field */
+	if (monitor_mask){
+		db_post_events(prec,&prec->val,monitor_mask);
+	}
+	return;
 }
 \end{lstlisting}
 
@@ -533,9 +542,11 @@ where:
 \item \index{DBE\_ALARM}DBE\_ALARM - A change of alarm state has occured.
 This is set by \verb|recGblResetAlarms|.
 
-\item \index{DBE\_LOG}DBE\_LOG - Archive change of state.
+\item \index{DBE\_LOG}DBE\_LOG - Archived value update.
 
-\item \index{DBE\_VAL}DBE\_VAL - Value change of state
+\item \index{DBE\_VAL}DBE\_VAL - Value update.
+
+\item \index{DBE\_PROPERTY}DBE\_PROPERTY - Value property update.
 
 \end{description}
 
@@ -561,7 +572,7 @@ Any action is record type specific.
 \subsection{Initialize Record Processing}
 
 \begin{lstlisting}[language=C]
-long initialize(void);
+long init(void);
 \end{lstlisting}
 
 \index{init - Record Support Routine}This routine is called once at IOC initialization time.
@@ -571,7 +582,7 @@ Most record types do not need this routine.
 \subsection{Initialize Specific Record}
 
 \begin{lstlisting}[language=C]
-long init_record(void *precord, int pass);
+long (*init_record)(struct dbCommon *precord, int pass);
 \end{lstlisting}
 
 \index{init\_record - record support routine}\verb|iocInit| calls this routine twice (pass=0 and pass=1) for each database record of the type handled by this routine.
@@ -591,7 +602,7 @@ It must perform the following functions:
 \subsection{Process Record}
 
 \begin{lstlisting}[language=C]
-long process(void *precord);
+long (*process)(struct dbCommon *precord);
 \end{lstlisting}
 
 \index{process - Record Support Routine}
@@ -677,7 +688,7 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 \subsection{Get Units}
 
 \begin{lstlisting}[language=C]
-long get_units(struct dbAddr *paddr, char *punits);
+long get_units(struct dbAddr *paddr, char *units);
 \end{lstlisting}
 
 \index{get\_units - Record Support Routine}
@@ -688,7 +699,7 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 \subsection{Get Precision}
 
 \begin{lstlisting}[language=C]
-long get_precision(struct dbAddr *paddr, long *precision);
+long get_precision(const struct dbAddr *paddr, long *precision);
 \end{lstlisting}
 
 \index{get\_precision - Record Support Routine}
@@ -701,7 +712,7 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 \subsection{Get Enumerated String}
 
 \begin{lstlisting}[language=C]
-long get_enum_str(struct dbAddr *paddr, char *p);
+long get_enum_str(const struct dbAddr *paddr, char *pbuffer);
 \end{lstlisting}
 
 \index{get\_enum\_str - record Support Routine}
@@ -715,7 +726,7 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 \subsection{Get Strings for Enumerated Field}
 
 \begin{lstlisting}[language=C]
-long get_enum_strs(struct dbAddr *paddr, struct dbr_enumStrs *p);
+long get_enum_strs(const struct dbAddr *paddr, struct dbr_enumStrs *p);
 \end{lstlisting}
 
 \index{get\_enum\_strs - record Support Routine}
@@ -728,7 +739,7 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 \subsection{Put Enumerated String}
 
 \begin{lstlisting}[language=C]
-long put_enum_str(struct dbAddr *paddr, char *p);
+long put_enum_str(const struct dbAddr *paddr, char *pbuffer);
 \end{lstlisting}
 
 \index{put\_enum\_str - Record Support Routine}
@@ -754,7 +765,7 @@ The database access routine, \verb|dbGetFieldIndex| can be used to determine whi
 \subsection{Get Control Double Information}
 
 \begin{lstlisting}[language=C]
-long get_control_double(struct dbAddr *paddr, struct dbr_ctrlDouble  *p);
+long get_control_double(struct dbAddr *paddr, struct dbr_ctrlDouble *p);
 \end{lstlisting}
 
 \index{get\_control\_double - Record Support Routine}
