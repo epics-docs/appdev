@@ -239,7 +239,7 @@ If a device support module is using a driver, it may choose not to implement thi
 \subsection{Initialize Device Processing}
 \label{subsec:Initialize Device Processing}
 
-\index{Initialize Record Processing}
+\index{Initialize Device Processing}
 \begin{lstlisting}[language=C]
 long init(
     int   after);
@@ -331,7 +331,8 @@ If a record is set to I/O Interrupt scan but the new layer does not support this
 
 \subsection{Initialization/Registration}
 
-Device support that implements the extended behaviour must provide an \verb|init| routine in the Device Support Entry Table (see Section \ref{subsec:Initialize Device Processing}).
+Device support that implements the extended behaviour must provide an \verb|init| routine in the Device Support Entry Table 
+(see Section \ref{Initialize Device Processing}).
 In the first call to this routine (pass 0) it registers the address of its Device Support eXtension Table (DSXT) in a call to \verb|devExtend|.
 
 The only exception to this registration requirement is when the device support uses a link type of CONSTANT.  In this 
