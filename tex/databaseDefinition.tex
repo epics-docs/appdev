@@ -734,9 +734,8 @@ static void myRegistrar(void);
 epicsExportRegistrar(myRegistrar);
 \end{lstlisting}
 
-This can be used to register functions for use by subroutine records or that can be invoked from iocsh. The example 
-application described in Section \ref{Example IOC Application}, ``Example IOC Application'' on page \pageref{Example IOC Application}
-gives an example of how to register functions for subroutine records.
+This can be used to register functions for use by subroutine records or that can be invoked from iocsh.
+The example application described in Section \ref{Example IOC Application}, ``Example IOC Application'' gives an example of how to register functions for subroutine records.
 
 \subsubsection{Example}
 
@@ -766,10 +765,9 @@ If not present, \verb|int| is assumed.
 Currently only \verb|int| and \verb|double| variables are supported.
 \end{description}
 
-This registers a diagnostic/configuration variable for device or driver support or a subroutine record subroutine so that
-the variable can be read and set with the iocsh \verb|var| command (see Section \ref{Utility Commands} on page \pageref{Utility Commands}).
-The example application described in Section \ref{Example IOC Application} on page \pageref{Example IOC Application}
-provides an example of how to register a debug variable for a subroutine record.
+This registers a diagnostic/configuration variable for device or driver support or a subroutine record subroutine.
+This variable can be read and set with the iocsh \verb|var| command (see Section \ref{Utility Commands}.
+The example application described in Section \ref{Example IOC Application} shows how to register a debug variable for use in a subroutine record.
 
 \subsubsection{Example}
 
@@ -801,11 +799,13 @@ function(function_name)
 
 \begin{description}
 \index{function\_name -- function definition}
-\item [function\_name] The name of a C function which is exported from its source file in an \index{epicsRegisterFunction}\verb|epicsRegisterFunction| declaration.
+\item [function\_name] The name of a C function which has been exported from its source file with an
+\index{epicsRegisterFunction}
+\verb|epicsRegisterFunction| declaration.
 \end{description}
 
 This registers a function so that it can be found in the function registry for use by record types such as sub or aSub which refer to the function by name.
-The example application described in Section \ref{Example IOC Application} on page \pageref{Example IOC Application} provides an example of how to register functions for a subroutine record.
+The example application described in Section \ref{Example IOC Application} shows how to register functions for a subroutine record.
 
 \subsubsection{Example}
 
