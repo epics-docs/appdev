@@ -150,16 +150,16 @@ This is a convention (a bad convention!) used by the analog input record.
 At this point the record has been completely processed.
 The next time process is called everything starts all over.
 
-Note that this is somewhat of an artificial example since real code of this form would more likely use the callbackcallbackRequestProcessCallbackDelayed function to perform the required processing.
+Note that this is somewhat of an artificial example since real code of this form would more likely use the \verb|callbackRequestProcessCallbackDelayed| function to perform the required processing.
 
 \begin{lstlisting}[language=C]
 static void myCallback(CALLBACK *pcallback)
 {
-    struct dbCommon *precord;
-    struct rset     *prset;
+    struct dbCommon   *precord;
+    struct typed_rset *prset;
 
     callbackGetUser(precord,pcallback);
-    prset=(struct rset *)(precord->rset);
+    prset = (struct typed_rset *)(precord->rset);
     dbScanLock(precord);
     (*prset->process)(precord);
     dbScanUnlock(precord);

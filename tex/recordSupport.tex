@@ -81,7 +81,7 @@ The examples given below show how this can be done.
 \section{Record Support and Device Support Entry Tables}
 
 Each record type has an associated set of record support routines.
-These routines are located via the \verb|struct rset| data structure declared in \verb|recSup.h| and defined by the specific record type.
+These routines are located via the \verb|struct typed_rset| data structure declared in \verb|recSup.h| and defined by the specific record type.
 This use of a record support vector table isolates the \verb|iocCore| software from the implementation details of each record type.
 Thus new record types can be defined without having to modify the IOC core software.
 
@@ -96,7 +96,7 @@ These routines are located via a Record Support Entry Table (\index{RSET}\index{
 
 \begin{lstlisting}[language=C]
 /* record support entry table */
-struct rset {
+struct typed_rset {
     long number; /* number of support routines */
     long (*report)(void *precord);
     long (*init)();

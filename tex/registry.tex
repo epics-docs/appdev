@@ -35,7 +35,7 @@ be registered is stored in the same gpHash table.
 typedef int (*computeSizeOffset)(dbRecordType *pdbRecordType);
 
 typedef struct recordTypeLocation {
-    struct rset *prset;
+    struct typed_rset *prset;
     computeSizeOffset sizeOffset;
 } recordTypeLocation;
 
