@@ -923,13 +923,13 @@ NOTE: This should become a Channel Access routine
 
 \subsubsection{dbGetRset}
 
-\index{dbGetRest}
+\index{dbGetRset}
 Get address of a record support entry table.
 
 Format:
 
 \begin{lstlisting}[language=C]
-struct rset *dbGetRset(DBADDR *paddr);
+rset * dbGetRset(const struct dbAddr *paddr);
 \end{lstlisting}
 
 \index{dbGetRset}

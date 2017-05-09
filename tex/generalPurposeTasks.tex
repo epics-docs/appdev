@@ -191,11 +191,11 @@ The routine \verb|ProcessCallback| was designed for asynchronous device completi
 \begin{lstlisting}[language=C]
 static void ProcessCallback(CALLBACK *pCallback)
 {
-    dbCommon    *pRec;
-    struct rset *prset;
+    dbCommon          *pRec;
+    struct typed_rset *prset;
  
     callbackGetUser(pRec, pCallback);
-    prset = (struct rset *)pRec->rset;
+    prset = (struct typed_rset *)pRec->rset;
     dbScanLock(pRec);
     (*prset->process)(pRec);
     dbScanUnlock(pRec);
