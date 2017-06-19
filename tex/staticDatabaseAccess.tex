@@ -96,17 +96,16 @@ The DCT field types are:
 
 A \verb|DCT_STRING| field contains the address of a \verb|NULL| terminated string.
 The field types \verb|DCT_INTEGER| and \verb|DCT_REAL| are used for numeric fields.
-A field that has any of these types can be accessed via the \verb|dbGetString|, \verb|dbPutString|, \verb|dbVerify|, and \verb|dbGetRange| routines.
+A field that has any of these types can be accessed via the \verb|dbGetString| or \verb|dbPutString| routines.
 
 The field type \verb|DCT_MENU| has an associated set of strings defining the choices.
 Routines are available for accessing menu fields.
-A menu field can also be accessed via the \verb|dbGetString|, \verb|dbPutString|, \verb|dbVerify|, and \verb|dbGetRange| 
-routines.
+A menu field can also be accessed via the \verb|dbGetString| or \verb|dbPutString| routines.
 
 The field type \verb|DCT_MENUFORM| is like \verb|DCT_MENU| but in addition the field has an associated link field.
 
 \verb|DCT_INLINK| (input), \verb|DCT_OUTLINK| (output), and \verb|DCT_FWDLINK| (forward) specify that the field is a link, which has an associated set of static access routines described in the next subsection.
-A field that has any of these types can also be accessed via the \verb|dbGetString|, \verb|dbPutString|, \verb|dbVerify|, and \verb|dbGetRange| routines.
+A field that has any of these types can also be accessed via the \verb|dbGetString| or \verb|dbPutString| routines.
 
 \section{Allocating and Freeing DBBASE}
 
@@ -605,19 +604,14 @@ If it returns success, then \verb|DBENTRY| references that field.
 \begin{lstlisting}[language=C]
 char *dbGetString(DBENTRY *pdbentry);
 long dbPutString(DBENTRY *pdbentry,char *pstring);
-char *dbVerify(DBENTRY *pdbentry,char *pstring);
-char *dbGetRange(DBENTRY *pdbentry);
 int   dbIsDefaultValue(DBENTRY *pdbentry);
 \end{lstlisting}
 
 \index{dbGetString}
 \index{dbPutString}
-\index{dbVerify}
-\index{dbGetRange}
 \index{dbIsDefaultValue}
 These routines are used to get or change field values.
 They work on any database field type except \verb|DCT_NOACCESS|.
-\verb|dbVerify| returns \verb|NULL| if the string contains a valid value for this field or an error message if not.
 Note that the strings returned are owned by the DBENTRY, so the next call passing that DBENTRY object that returns a string will overwrite the value returned by a previous call.
 It is the caller's responsibility to copy the strings if the value must be kept.
 
@@ -712,14 +706,14 @@ Each link is one of the following types:
 
 \item \index{DCT\_LINK\_PV}\verb|DCT_LINK_PV|: A process variable link.
 
-\item \index{DCT\_LINK\_FORM}\verb|DCT_LINK_FORM|: A link that can only be processed via the form routines described in the next section.
+\item \index{DCT\_LINK\_FORM}\verb|DCT_LINK_FORM|: A link that can only be processed via the form routines that have been removed from this release.
 
 \end{itemize}
 
 Database configuration tools can change any link between being a constant and a process variable link.
 Routines are provided to accomplish these tasks.
 
-The routines \verb|dbGetString|, \verb|dbPutString|, and \verb|dbVerify| can be used for link fields but the form routines can be used to provide a friendlier user interface.
+The routines \verb|dbGetString| and \verb|dbPutString| can be used for link fields but the form routines can be used to provide a friendlier user interface.
 
 \subsection{All Link Fields}
 
@@ -870,7 +864,6 @@ void dbReportDeviceConfig(DBBASE *pdbbase,FILE *report);
 \index{dbDumpRecord}
 \index{dbDumpMenu}
 \index{dbDumpRecordType}
-\index{dbDumpFldDes}
 \index{dbDumpDevice}
 \index{dbDumpDriver}
 \index{dbDumpRegistrar}
