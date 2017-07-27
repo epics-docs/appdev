@@ -29,42 +29,47 @@ A \verb|<top>| directory has the following directory structure:
 
 where \verb|configure| is a directory containing build configuration files and a \verb|Makefile|, where \verb|dir1|, \verb|dir2|, ... are user created 
 subdirectory trees with \verb|Makefile|s and source files to be built. Because the build rules allow make commands like
-``\verb|make install.vxWorks-68040|", subdirectory names within a \verb|<top>| directory structure may not contain a period "\verb|.|" character.
+``\verb|make install.vxWorks-68040|", subdirectory names within a \verb|<top>| directory structure may not contain a period ``\verb|.|" character.
+
+
 
 \subsection{Install Directories}
 
 \index{Install Directories}
-Files installed during the build are installed into subdirectories of an installation directory which defaults to \verb|$(TOP)|, the 
-\verb|<top>| directory. For base, extensions, and IOC applications,  the default value can be changed in the \\
+Files generated during the build are installed into subdirectories of an installation directory which defaults to \verb|$(TOP)|, the \verb|<top>| directory.
+For base, extensions, and IOC applications,  the default value can be changed in the \\
 \verb|configure/CONFIG_SITE|
-file. The installation directory for the EPICS components is controlled by the definition of \index{INSTALL\_LOCATION}\verb|INSTALL_LOCATION|
+file.
+The installation directory for the EPICS components is controlled by the definition of the \index{INSTALL\_LOCATION}\verb|INSTALL_LOCATION| variable.
 
-The following subdirectories may exist in the installation directory. They are created by the build and contain the installed 
-build components.
+Due to a side-effect of the build rules, the \emph{parent} of the installation directory (\verb|$(INSTALL_LOCATION)/..|) should not contain directories with the same names as the subdirectories listed below.
+
+The following subdirectories may exist in the installation directory.
+They are created by the build and contain the installed build components.
 
 \begin{itemize}
-\item \index{dbd directory}\verb|dbd| -- Directory into which Database Definition files are installed.
 
-\item \index{include directory}\verb|include| -- The directory into which C header files are installed. These header files may be generated from menu and 
-record type definitions.
+\item \index{dbd directory}\verb|dbd| -- A directory into which Database Definition files are installed.
 
-\item \index{bin directory}\verb|bin| -- This directory contains a subdirectory for each host architecture and for each target architecture. These are the 
-directories into which executables, binaries, etc. are installed.
+\item \index{include directory}\verb|include| -- A directory into which C and C++ header files are installed.
+These header files may be generated from menu and record type definitions.
 
-\item \index{lib directory}\verb|lib| -- This directory contains a subdirectory for each host architecture. These are the directories into which libraries 
-are installed.
+\item \index{bin directory}\verb|bin| -- This directory contains a subdirectory for each host and target architecture.
+These are the directories into which executables, binaries, etc. are installed.
 
-\item \index{db directory}\verb|db| -- This is the directory into which database record instance, template, and substitution files are installed.
+\item \index{lib directory}\verb|lib| -- This directory contains a subdirectory for each host and target architecture.
+These are the directories into which libraries are installed.
 
-\item \index{html directory}\verb|html| -- This is the directory into which html documentation is installed.
+\item \index{db directory}\verb|db| -- A directory into which database record instance, template, and substitution files are installed.
 
-\item \index{templates directory}\verb|templates| -- This is the directory into which template files are installed.
+\item \index{html directory}\verb|html| -- A directory sub-tree into which html documentation is installed.
 
-\item \index{javalib directory}\verb|javalib| -- This is the directory into which java class files and jar files are installed.
+\item \index{templates directory}\verb|templates| -- A directory sub-tree into which template files are installed.
 
-\item \index{configure directory}\verb|configure| -- The directory into which configure files are installed (if \verb|INSTALL_LOCATION| does not equal \verb|TOP|).
+\item \index{configure directory}\verb|configure| -- If the \verb|INSTALL_LOCATION| variable has been explicitly set so it does not equal \verb|TOP|, the configure files are copied from \verb|$(TOP)/configure|.
 
-\item \index{cfg directory}\verb|cfg| -- The directory into which user created configure files are installed 
+\item \index{cfg directory}\verb|cfg| -- A directory into which user created configure files are installed.
+
 \end{itemize}
 
 \subsection{Elements of build system}
