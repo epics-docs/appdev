@@ -8,7 +8,7 @@
 
 # Target installation directory
 
-INSTALL_DIR = /net/epics/Public/epics/base/R3-15/5-docs
+INSTALL_DIR = /net/epics-ops/web_roots/epics/docroot/base/R3-15/5-docs
 
 
 # Where is TeXLive installed?
