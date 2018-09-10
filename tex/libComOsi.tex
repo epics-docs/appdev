@@ -134,9 +134,9 @@ If the expression evaluates as false, the compiler will be presented with an ill
 This is an operating system and compiler independent interface to an operating system and or compiler dependent implementation of several atomic primitives.
 Currently, only increment, decrement, add, subtract, compare-and-swap, and test-and-set primitives have been implemented as appropriate for the C primitive types of \verb|int|, \verb|size_t|, and \verb|void *| pointer.
 
-These primitives can be safely used in a multithreaded programs on symmetric multiprocessing (SMP) systems.
-Where possible the primitives are implemented with compiler intrinsic wrappers for archetecture specific instructions.
-Otherwise they are implemeted with OS specific functions and otherwise, when lacking a sufficently capable OS specific interface, then in some rare situations a mutual exclusion primitive is used for synchronization.
+These primitives can be safely used in multithreaded programs on symmetric multiprocessing (SMP) systems.
+Where possible the primitives are implemented with compiler intrinsic wrappers for architecture specific instructions.
+Otherwise they are implemented with OS specific functions and otherwise, when lacking a sufficiently capable OS specific interface, then in some rare situations a mutual exclusion primitive is used for synchronization.
 
 In operating systems environments which allow C code to run at interrupt level the implementation must use interrupt level invokable CPU instruction primitives.
 

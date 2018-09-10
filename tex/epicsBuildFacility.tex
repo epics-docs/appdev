@@ -436,7 +436,7 @@ target architecture is vwWorks-68040 or vxWorks-ppc603
 \item \verb|PROD_IOC = aaa|
 \item \verb|VX_PROD_vxWorks-68040 = bbb|
 \item \verb|VX_PROD_vxWorks-ppc603 = bbb|
-\item \verb|PROD_IOC += VX_PROD_$(T_A)|
+\item \verb|PROD_IOC += $(VX_PROD_$(T_A))|
 \end{description}
 \subsection{Host and Ioc targets}
 

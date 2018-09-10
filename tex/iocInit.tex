@@ -147,8 +147,8 @@ At this point, \verb|initHookAtBeginning| is announced.
 
 \subsection{General Purpose Modules}
 
-\index{coreRelese}
-Calls \verb|coreRelese| which prints a message showing which version of iocCore is being run.
+\index{coreRelease}
+Calls \verb|coreRelease| which prints a message showing which version of iocCore is being run.
 
 \index{taskwdInit}
 Calls \verb|taskwdInit| to start the task watchdog.
@@ -168,7 +168,7 @@ Three tasks are started at different scheduling priorities.
 
 \index{dbCaLinkInit}
 Calls \verb|dbCaLinkInit|.
-The initializes the module that handles database channel access links, but does not allow its task to run yet.
+This initializes the module that handles database channel access links, but does not allow its task to run yet.
 
 \index{initHookAfterCaLinkInit}
 \verb|initHookAfterCaLinkInit| is announced.
@@ -359,7 +359,7 @@ errlogInit2(buffersize, maxMessageSize)
 
 \subsection{callbackSetQueueSize}
 
-Requests for the general putpose callback tasks are placed in a ring buffer.
+Requests for the general purpose callback tasks are placed in a ring buffer.
 This command can be used to set the size for the ring buffers.
 The default is 2000.
 A message is issued when a ring buffer overflows.
