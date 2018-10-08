@@ -1,8 +1,9 @@
 # Makefile to build and install the Application Developers Guide
-# and the Channel Access Protocol Specification
+# and the Channel Access Protocol Specification.
+
 # Requires:
 #   AppDevGuide:
-#       TeX Live 2015
+#       TeX Live 2015 or later
 #   CAproto:
 #       asciidoc and dia
 
@@ -12,7 +13,7 @@ INSTALL_DIR = /net/epics-ops/web_roots/epics/docroot/base/R3-15/5-docs
 
 
 # Where is TeXLive installed?
-LATEX_DIR = /usr/local/texlive/2015
+LATEX_DIR = /usr/local/texlive/2017
 LATEX_BIN = $(LATEX_DIR)/bin/x86_64-linux
 export PATH := $(PATH):$(LATEX_BIN)
 
