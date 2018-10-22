@@ -113,6 +113,7 @@ The IOC shell recognizes the following commands as well as the commands describe
 The commands described in the sequencer documentation will also be recognized if the sequencer is included.
 
 \index{epicsEnvSet}
+\index{epicsEnvUnset}
 \index{epicsEnvShow}
 \index{epicsParamShow}
 \index{iocLogInit}
@@ -130,6 +131,7 @@ var [name [value]] & If both arguments are present, assign the value to the name
 show [-level] [task ...] & Show information about specified tasks.  If no task arguments are present, show information on all tasks.  The level argument controls the amount of information printed.  The default level is 0.  The task arguments can be task names or task i.d. numbers.\\
 system command\_string & Send command\_string to the system command interpreter for execution.  This command is present only if some application database definition file contains registrar(iocshSystemCommand) and if the system provides a suitable command interpreter (vxWorks does not).\\
 epicsEnvSet name value & Set environment variable name to the specified value.\\
+epicsEnvUnset name & Remove variable name from the environment.\\
 epicsEnvShow  [name] & If no name is specified the names and values of all environment variables will be shown. If a name is specified the value of that environment variable will be shown.\\
 epicsParamShow & Show names and values of all EPICS configuration parameters.\\
 iocLogInit & Initialize IOC logging.\\

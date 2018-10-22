@@ -495,7 +495,7 @@ EPICS_IOC_LOG_INET
 \end{verbatim}
 
 For an explanation of the \verb|EPICS_CA_|... and \verb|EPICS_CAS_|... variables see the EPICS Channel Access Reference Manual.
-For an explaination of the \verb|EPICS_IOC_LOG_|... variables see "iocLogClient" on page \pageref{iocLogClient} of this manual.
+For an explanation of the \verb|EPICS_IOC_LOG_|... variables see "iocLogClient" on page \pageref{iocLogClient} of this manual.
 \verb|EPICS_TS_NTP_INET| is used only on vxWorks and RTEMS, where it sets the address of the Network Time Protocol server.
 If it is not defined the IOC uses the boot server as its NTP server.
 
@@ -506,16 +506,21 @@ For example:
 epicsEnvSet("EPICS_CA_CONN_TMO,"10")
 \end{verbatim}
 
-\index{epicsEnvSet}
 All \verb|epicsEnvSet| commands should be issued after iocCore is loaded and before any dbLoad commands.
 
 The following commands can be issued to iocsh:
 
+\index{epicsEnvSet}
+\verb|epicsEnvSet "<name>" "<value>"| -- Set environment variable \verb|name| to \verb|value|.
+
+\index{epicsEnvUnset}
+\verb|epicsEnvUnset "<name>"| -- Remove variable \verb|name| from the environment.
+
 \index{epicsPrtEnvParams}
-\verb|epicsPrtEnvParams| -- This shows just the environment variables used by iocCore.
+\verb|epicsPrtEnvParams| -- Show the environment variable parameters used by iocCore.
 
 \index{epicsEnvShow}
-\verb|epicsEnvShow| -- This shows all environment variables on your system.
+\verb|epicsEnvShow| -- Show all environment variables on your system.
 
 \section{Initialize Logging}
 

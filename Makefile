@@ -1,5 +1,6 @@
 # Makefile to build and install the Application Developers Guide
-# and the Channel Access Protocol Specification
+# and the Channel Access Protocol Specification.
+
 # Requires:
 #   AppDevGuide:
 #       TeX Live 2015 or later
@@ -8,7 +9,7 @@
 
 # Target installation directory
 
-INSTALL_DIR = /net/epics-ops/web_roots/epics/docroot/base/R3-16/1-docs
+INSTALL_DIR = /net/epics-ops/web_roots/epics/docroot/base/R3-16/2-docs
 
 
 # Where is TeXLive installed?
